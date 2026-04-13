@@ -1,7 +1,6 @@
-/**
- * ID Generator Utility
- * Generates unique IDs for different entity types
- * Format: PREFIX + 5-digit number (e.g., I00001, C00001, P00001, etc.)
+/* ID Generator Utility:
+  Generates unique IDs for different entity types
+ Format: PREFIX + 5-digit number (e.g., I00001, C00001, P00001, etc.)
  */
 
 const Instructor = require('../models/Instructor');

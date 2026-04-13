@@ -1,3 +1,9 @@
+/*
+  Template Engine: Loads HTML templates from the views/ directory and substitutes
+  {{placeholder}} tokens with provided values. Used by all modules that render
+  HTML responses.
+*/
+
 const fs = require('fs');
 const path = require('path');
 

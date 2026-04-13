@@ -1,3 +1,9 @@
+/*
+  DB Status: Utilities for inspecting and reporting MongoDB connection state.
+  Provides getConnectionCode(), getConnectionText(), and renderStatusPage() for
+  the /status route and the API landing page.
+*/
+
 const mongoose = require("mongoose");
 
 // Returns the current MongoDB connection state code

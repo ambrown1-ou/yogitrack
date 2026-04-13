@@ -3,16 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const { renderTemplate } = require("../modules/templateEngine");
 const { getConnectionCode } = require("../modules/dbStatus");
-
-// Escapes HTML special characters for safe template interpolation
-function escapeHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+const { escapeHtml } = require("../modules/routeFactory");
 
 // GET / - Render the API landing page with DB status and available module links
 router.get("/", (req, res) => {

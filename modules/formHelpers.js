@@ -1,4 +1,10 @@
-// Helper module for form rendering in API routes
+/*
+  Form Helpers: Renders HTML forms and method-list pages for API modules.
+  Provides getFieldConfig() for field metadata, renderFieldInput() for individual
+  form inputs, renderForm() for full method forms, and renderMethodList() for
+  the index page of each API module.
+*/
+
 const { renderTemplate } = require('./templateEngine');
 
 // Returns input type, label, and attributes for a given field name
