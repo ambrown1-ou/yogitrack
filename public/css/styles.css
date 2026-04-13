@@ -1,0 +1,181 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #000;
+  min-height: 100vh;
+  padding: 24px 16px;
+  line-height: 1.4;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.container.narrow {
+  max-width: 560px;
+}
+
+.container.medium {
+  max-width: 760px;
+}
+
+.card,
+.header {
+  background: #fff;
+  border: 1px solid #000;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.card h1,
+.card h2,
+.header h1 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.card h1,
+.card h2 {
+  border-bottom: 1px solid #000;
+  padding-bottom: 8px;
+}
+
+.header p,
+.card p {
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #000;
+  outline-offset: 1px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+button,
+.button,
+.cancel-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover,
+.button:hover,
+.cancel-btn:hover,
+a:hover {
+  text-decoration: underline;
+}
+
+a {
+  color: #000;
+}
+
+.methods-list {
+  list-style: none;
+  padding: 0;
+}
+
+.methods-list li {
+  margin-bottom: 8px;
+}
+
+.methods-list a {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid #000;
+  text-decoration: none;
+}
+
+.back-link {
+  display: block;
+  margin-top: 20px;
+}
+
+.error-details {
+  border: 1px solid #000;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-family: "Courier New", Courier, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+pre {
+  border: 1px solid #000;
+  padding: 12px;
+  overflow-x: auto;
+  font-family: "Courier New", Courier, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th,
+td {
+  border: 1px solid #000;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+footer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #000;
+}
+
+.info-box {
+  border: 1px solid #000;
+  padding: 12px;
+  margin-bottom: 16px;
+}

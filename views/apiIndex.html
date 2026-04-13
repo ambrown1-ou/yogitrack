@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>YogiTrack API Development and Testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="back-link">
+      <a href="/">< Back to Dashboard</a>
+    </div>
+
+    <div class="header">
+      <h1>YogiTrack API</h1>
+      <p>API Development and Testing</p>
+    </div>
+
+    <div class="card">
+      <h2>Database Status</h2>
+      <p>{{dbStatus}}</p>
+    </div>
+
+    <div class="card">
+      <h2>Available Modules</h2>
+      <div class="info-box">
+        <p>Select a module below to view its methods and test endpoints. Each module provides CRUD operations for managing studio resources.</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{moduleLinks}}
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 YogiTrack. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>

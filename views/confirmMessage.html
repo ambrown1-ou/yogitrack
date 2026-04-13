@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container narrow">
+    <div class="card">
+      <h1 class="warning-title">{{message}}</h1>
+      <div class="warning-details">{{details}}</div>
+      <form method="POST" action="{{action}}">
+        {{hiddenFields}}
+        <div class="button-group">
+          <button type="submit" class="btn btn-confirm">{{confirmText}}</button>
+          <a href="{{backUrl}}" class="btn btn-cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{methodName}}</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container narrow">
+    <div class="card">
+      <h1>{{methodName}}</h1>
+      <form method="POST" action="{{action}}">
+        {{fieldInputs}}
+        <div class="form-actions">
+          <button type="submit">{{submitText}}</button>
+          <a href="{{baseUrl}}" class="cancel-btn">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
