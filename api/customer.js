@@ -35,6 +35,7 @@ function serialize(doc) {
     preferredContactMethod: doc.preferredContactMethod,
     classBalance: doc.classBalance,
     joinDate: doc.joinDate instanceof Date ? doc.joinDate.toISOString().split('T')[0] : doc.joinDate,
+    packages: doc.packages || [],
     isActive: doc.isActive
   };
 }

@@ -46,6 +46,26 @@ const customerSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  packages: [
+    {
+      packageId: {
+        type: String,
+        required: true
+      },
+      expirationDate: {
+        type: Date,
+        required: true
+      },
+      classBalance: {
+        type: Number,
+        default: 0
+      },
+      unlimited: {
+        type: Boolean,
+        default: false
+      }
+    }
+  ],
   isActive: {
     type: Boolean,
     default: true
