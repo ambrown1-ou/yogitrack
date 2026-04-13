@@ -15,6 +15,9 @@ function getFieldConfig(fieldName) {
     // Names
     firstName: { type: 'text', placeholder: 'John', label: 'First Name', required: true },
     lastName: { type: 'text', placeholder: 'Doe', label: 'Last Name', required: true },
+    username: { type: 'text', placeholder: 'manager01', label: 'Username', required: true },
+    password: { type: 'password', placeholder: 'Enter password', label: 'Password', required: true },
+    role: { type: 'select', options: ['manager', 'instructor'], label: 'Role', required: true },
 
     // Contact
     email: { type: 'email', placeholder: 'john@example.com', label: 'Email', required: true },

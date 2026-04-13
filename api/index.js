@@ -4,6 +4,16 @@ const mongoose = require("mongoose");
 const { renderTemplate } = require("../modules/templateEngine");
 const { getConnectionCode } = require("../modules/dbStatus");
 
+// Escapes HTML special characters for safe template interpolation
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // GET / - Render the API landing page with DB status and available module links
 router.get("/", (req, res) => {
   // Check current MongoDB connection state
@@ -12,8 +22,18 @@ router.get("/", (req, res) => {
   const statusColor = code === 1 ? 'green' : 'red';
   const dbName = mongoose.connection.name || 'not connected';
   const dbStatus = `<span style="color:${statusColor};font-weight:bold">${statusText}</span> - ${dbName}`;
+  const loginUser = req.session?.username
+    ? `${escapeHtml(req.session.username)} (${escapeHtml(req.session.role || 'unknown role')})`
+    : 'Not logged in';
+  const loginStatusColor = req.session?.username ? 'green' : '#555';
+  const loginStatus = `<span style="color:${loginStatusColor};font-weight:bold">${loginUser}</span>`;
   // Build module list for the landing page table
   const modules = [
+    {
+      name: "Auth",
+      path: "/api/auth",
+      description: "Register, login, and manage authenticated session"
+    },
     {
       name: "Instructor",
       path: "/api/instructor",
@@ -58,7 +78,8 @@ router.get("/", (req, res) => {
 
   const html = renderTemplate('apiIndex', {
     moduleLinks,
-    dbStatus
+    dbStatus,
+    loginStatus
   });
 
   res.send(html);

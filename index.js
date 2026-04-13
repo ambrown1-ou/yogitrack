@@ -4,6 +4,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const dbStatus = require("./modules/dbStatus");
+const User = require("./models/User");
 
 // Import API modules
 const apiRoot = require("./api/index");
@@ -68,6 +69,41 @@ app.use("/api/class", classAPI);
 app.use("/api/attendance", attendanceAPI);
 
 // Connect to MongoDB and start the Express server
+async function ensureTestUsers() {
+  const configuredPassword = process.env.TEST_USER_PASSWORD;
+  if (!configuredPassword) {
+    console.log("Skipping test account creation: TEST_USER_PASSWORD is not set.");
+    return;
+  }
+
+  const testUsers = [
+    {
+      username: process.env.TEST_MANAGER_USERNAME || 'manager_test',
+      role: 'manager',
+      email: process.env.TEST_MANAGER_EMAIL || 'manager_test@yogitrack.local'
+    },
+    {
+      username: process.env.TEST_INSTRUCTOR_USERNAME || 'instructor_test',
+      role: 'instructor',
+      email: process.env.TEST_INSTRUCTOR_EMAIL || 'instructor_test@yogitrack.local'
+    }
+  ];
+
+  for (const account of testUsers) {
+    const existing = await User.findOne({ username: account.username });
+    if (existing) continue;
+
+    const user = new User({
+      username: account.username,
+      password: configuredPassword,
+      role: account.role,
+      email: account.email
+    });
+    await user.save();
+    console.log(`Created test account: ${account.username} (${account.role})`);
+  }
+}
+
 async function start() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
@@ -75,6 +111,7 @@ async function start() {
       serverSelectionTimeoutMS: 5000
     });
     console.log("MongoDB connected");
+    await ensureTestUsers();
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
     console.error("App will start without database connectivity");
