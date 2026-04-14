@@ -8,7 +8,7 @@ const User = require("./models/User");
 
 // Import API modules
 const apiRoot = require("./api/index");
-const authAPI = require("./api/auth");
+const userAPI = require("./api/user");
 const instructorAPI = require("./api/instructor");
 const customerAPI = require("./api/customer");
 const packageAPI = require("./api/package");
@@ -59,7 +59,7 @@ app.get("/status", async (req, res) => {
 });
 
 // Mount API modules
-app.use("/api/auth", authAPI);
+app.use("/api/user", userAPI);
 app.use("/api", apiRoot);
 app.use("/api/instructor", instructorAPI);
 app.use("/api/customer", customerAPI);
