@@ -19,18 +19,6 @@ router.get("/", async (req, res) => {
   const loginStatusColor = req.session?.username ? 'green' : '#555';
   const loginStatus = `<span style="color:${loginStatusColor};font-weight:bold">${loginUser}</span>`;
 
-  // Fetch record counts per collection if connected
-  const counts = {};
-  if (code === 1 && mongoose.connection.db) {
-    const db = mongoose.connection.db;
-    const collectionNames = (await db.listCollections().toArray()).map(c => c.name);
-    await Promise.all(
-      collectionNames.map(async name => {
-        counts[name] = await db.collection(name).countDocuments();
-      })
-    );
-  }
-
   // Build module list for the landing page table
   const modules = [
     { name: "User",       path: "/api/user",       collection: "users",       description: "Register, login, and manage authenticated session" },
@@ -44,12 +32,10 @@ router.get("/", async (req, res) => {
 
   const moduleLinks = modules
     .map(module => {
-      const count = counts[module.collection] !== undefined ? counts[module.collection].toLocaleString() : '—';
       return `
       <tr>
         <td><strong>${module.name}</strong></td>
         <td>${module.description}</td>
-        <td style="text-align:center">${count}</td>
         <td><a href="${module.path}">View Methods</a></td>
       </tr>`;
     })

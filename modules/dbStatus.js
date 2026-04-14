@@ -36,18 +36,27 @@ async function renderStatusPage() {
   let databaseName = conn.name || "not connected";
   let collections = [];
 
+  const counts = {};
   if (connectionCode === 1 && conn.db) {
     const collectionInfo = await conn.db.listCollections().toArray();
     collections = collectionInfo
       .map((c) => c.name)
       .sort((a, b) => a.localeCompare(b));
+    await Promise.all(
+      collections.map(async (name) => {
+        counts[name] = await conn.db.collection(name).countDocuments();
+      })
+    );
   }
 
   const collectionsHtml =
     collections.length > 0
-      ? `<ul>${collections
-          .map((name) => `<li>${escapeHtml(name)}</li>`)
-          .join("")}</ul>`
+      ? `<table>
+          <thead><tr><th>Collection</th><th>Records</th></tr></thead>
+          <tbody>${collections
+            .map((name) => `<tr><td>${escapeHtml(name)}</td><td>${counts[name].toLocaleString()}</td></tr>`)
+            .join("")}</tbody>
+        </table>`
       : "<p>No collections available.</p>";
 
   return `<!doctype html>
