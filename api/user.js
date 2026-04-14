@@ -1,5 +1,5 @@
 /*
-  Auth Module: Handles registration, login, session, and logout for manager and instructor users.
+  User Module: Handles registration, login, session, and logout for manager and instructor users.
   1. Register: POST username, password, and role -> password is hashed -> user saved to DB
   2. Login: POST username and password -> verify credentials -> create session
   3. Get User: POST to retrieve current user from session
@@ -8,16 +8,17 @@
 
 const { createRouter, sendError, sendSuccess } = require('../modules/routeFactory');
 const User = require('../models/User');
-const BACK = '/api/auth';
+const BACK = '/api/user';
 
-// Route handlers for browser-friendly auth actions
+// Route handlers for browser-friendly user auth actions
 module.exports = createRouter({
-  moduleTitle: 'Auth',
+  moduleTitle: 'User',
   basePath: BACK,
   methods: {
     register: { fields: ['username', 'password', 'role', 'email'] },
     login: { fields: ['username', 'password'] },
     user: { fields: [] },
+    getAllUsers: { fields: [] },
     logout: { fields: [] }
   },
   handlers: {
@@ -28,12 +29,13 @@ module.exports = createRouter({
       const errors = User.validate(req.body);
       if (errors.length) return sendError(res, 400, 'Validation Failed', errors.join('; '), BACK);
 
-      const normalizedUsername = String(username).trim();
-      const existingUser = await User.findOne({ username: normalizedUsername });
+      const normalizedUsername = User.normalizeUsername(username);
+      const existingUser = await User.findByUsername(normalizedUsername);
       if (existingUser) {
         return sendError(res, 409, 'User Already Exists', `A user with username "${normalizedUsername}" already exists`, BACK);
       }
 
+      // Create and save the new user; password hashed by pre-save hook
       const user = new User({
         username: normalizedUsername,
         password,
@@ -47,31 +49,25 @@ module.exports = createRouter({
 
     // Verify credentials and establish a session
     async login(req, res) {
-      const { username, password } = req.body;
+      const errors = User.validateLogin(req.body);
+      if (errors.length) return sendError(res, 400, 'Missing Required Fields', errors.join('; '), BACK);
 
-      if (!username || !password) {
-        return sendError(res, 400, 'Missing Required Fields', 'Username and password are required', BACK);
-      }
-
-      const normalizedUsername = String(username).trim();
-      const user = await User.findOne({ username: normalizedUsername });
+      const user = await User.authenticate(req.body.username, req.body.password);
       if (!user) {
         return sendError(res, 401, 'Authentication Failed', 'Invalid username or password', BACK);
       }
-
-      const isValidPassword = await user.verifyPassword(password);
-      if (!isValidPassword) {
-        return sendError(res, 401, 'Authentication Failed', 'Invalid username or password', BACK);
-      }
-
-      user.lastLogin = new Date();
-      await user.save();
 
       req.session.userId = user._id;
       req.session.username = user.username;
       req.session.role = user.role;
 
       sendSuccess(res, 'Login Successful', User.toResponse(user), BACK);
+    },
+
+    // Return all registered users
+    async getAllUsers(req, res) {
+      const users = await User.getAllUsers();
+      sendSuccess(res, `Retrieved ${users.length} User(s)`, users, BACK);
     },
 
     // Return the authenticated user tied to the current session

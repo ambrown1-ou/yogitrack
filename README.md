@@ -33,9 +33,53 @@ On startup, YogiTrack creates these test users if they do not already exist only
 There is no default password for test acccounts.
 If `TEST_USER_PASSWORD` is not set, authentication fails.
 
+## Required Modules
+
+| Module | Purpose |
+|---|---|
+| `express` | Web framework for routing and middleware |
+| `mongoose` | MongoDB object modeling for schema definition and database interaction |
+| `bcryptjs` | Hashes and verifies user passwords before storing them |
+| `express-session` | Maintains server-side login sessions across requests |
+| `dotenv` | Loads environment variables from a `.env` file |
+| `cors` | Adds Cross-Origin Resource Sharing headers for API access control |
+
+## API Response Format
+
+All POST endpoints return JSON in the following structure:
+
+**Success:**
+```json
+{
+  "success": true,
+  "results": [],
+  "resultsType": "array"
+}
+```
+
+**Error:**
+```json
+{
+  "success": false,
+  "results": [{ "error": "Error detail" }],
+  "resultsType": "error"
+}
+```
+
+**Confirmation required** (e.g. duplicate record detected):
+```json
+{
+  "success": false,
+  "results": [{ "details": "...", "action": "/api/...", "formData": {} }],
+  "resultsType": "confirmation"
+}
+```
+
+To confirm, re-POST the `formData` object from `results[0]` to the `action` URL.
+
 ## API Routes
 
-- `/api/auth` - Authentication
+- `/api/user` - Authentication
 - `/api/instructor` - Instructors - IN PROGRESS
 - `/api/customer` - Customers
 - `/api/class` - Classes - IN PROGRESS
