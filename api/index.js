@@ -5,8 +5,8 @@ const { renderTemplate } = require("../modules/templateEngine");
 const { getConnectionCode } = require("../modules/dbStatus");
 const { escapeHtml } = require("../modules/routeFactory");
 
-// GET / - Render the API landing page with DB status and available module links
-router.get("/", (req, res) => {
+// GET / - Render the API landing page with DB status, collection record counts, and module links
+router.get("/", async (req, res) => {
   // Check current MongoDB connection state
   const code = getConnectionCode();
   const statusText = { 0: 'Disconnected', 1: 'Connected', 2: 'Connecting', 3: 'Disconnecting' }[code] || 'Unknown';
@@ -18,53 +18,41 @@ router.get("/", (req, res) => {
     : 'Not logged in';
   const loginStatusColor = req.session?.username ? 'green' : '#555';
   const loginStatus = `<span style="color:${loginStatusColor};font-weight:bold">${loginUser}</span>`;
+
+  // Fetch record counts per collection if connected
+  const counts = {};
+  if (code === 1 && mongoose.connection.db) {
+    const db = mongoose.connection.db;
+    const collectionNames = (await db.listCollections().toArray()).map(c => c.name);
+    await Promise.all(
+      collectionNames.map(async name => {
+        counts[name] = await db.collection(name).countDocuments();
+      })
+    );
+  }
+
   // Build module list for the landing page table
   const modules = [
-    {
-      name: "Auth",
-      path: "/api/auth",
-      description: "Register, login, and manage authenticated session"
-    },
-    {
-      name: "Instructor",
-      path: "/api/instructor",
-      description: "Manage yoga instructors"
-    },
-    {
-      name: "Customer",
-      path: "/api/customer",
-      description: "Manage customers"
-    },
-    {
-      name: "Package",
-      path: "/api/package",
-      description: "Manage class packages"
-    },
-    {
-      name: "Sale",
-      path: "/api/sale",
-      description: "Manage package purchases and payments"
-    },
-    {
-      name: "Class",
-      path: "/api/class",
-      description: "Manage class schedule"
-    },
-    {
-      name: "Attendance",
-      path: "/api/attendance",
-      description: "Record and manage class attendance"
-    }
+    { name: "User",       path: "/api/user",       collection: "users",       description: "Register, login, and manage authenticated session" },
+    { name: "Instructor", path: "/api/instructor", collection: "instructors", description: "Manage yoga instructors" },
+    { name: "Customer",   path: "/api/customer",   collection: "customers",   description: "Manage customers" },
+    { name: "Package",    path: "/api/package",    collection: "packages",    description: "Manage class packages" },
+    { name: "Sale",       path: "/api/sale",       collection: "sales",       description: "Manage package purchases and payments" },
+    { name: "Class",      path: "/api/class",      collection: "classes",     description: "Manage class schedule" },
+    { name: "Attendance", path: "/api/attendance", collection: "attendances", description: "Record and manage class attendance" }
   ];
 
   const moduleLinks = modules
-    .map(module => `
+    .map(module => {
+      const count = counts[module.collection] !== undefined ? counts[module.collection].toLocaleString() : '—';
+      return `
       <tr>
         <td><strong>${module.name}</strong></td>
         <td>${module.description}</td>
+        <td style="text-align:center">${count}</td>
         <td><a href="${module.path}">View Methods</a></td>
-      </tr>
-    `)
+      </tr>`;
+    })
     .join("");
 
   const html = renderTemplate('apiIndex', {

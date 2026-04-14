@@ -18,24 +18,30 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// Sends an error response page with the given status and message
-function sendError(res, status, message, error, backUrl) {
-  res.status(status).send(renderTemplate('errorMessage', {
-    message,
-    error: escapeHtml(error),
-    backUrl,
-    backText: '< Back to methods'
-  }));
+// Sends a formatted JSON response; readable in browser, valid JSON for clients
+function sendJson(res, status, body) {
+  res.status(status)
+    .header('Content-Type', 'application/json')
+    .send(JSON.stringify(body, null, 2));
 }
 
-// Sends a success response page with the result data
+// Sends a JSON error response with the given status and message
+function sendError(res, status, message, error, backUrl) {
+  sendJson(res, status, {
+    success: false,
+    results: [{ error }],
+    resultsType: 'error'
+  });
+}
+
+// Sends a JSON success response with the result data
 function sendSuccess(res, message, data, backUrl) {
-  res.send(renderTemplate('successMessage', {
-    message,
-    data: typeof data === 'string' ? data : JSON.stringify(data, null, 2),
-    backUrl,
-    backText: '< Back to methods'
-  }));
+  const results = Array.isArray(data) ? data : (data !== undefined && data !== null ? [data] : []);
+  sendJson(res, 200, {
+    success: true,
+    results,
+    resultsType: 'array'
+  });
 }
 
 // Validates that a string field is present and non-empty; sends a 400 and returns false if not
@@ -63,20 +69,13 @@ function sendNotImplemented(res, moduleTitle, methodName, backUrl) {
   );
 }
 
-// Sends a confirmation page with hidden form fields for re-submission
+// Sends a JSON confirmation response for actions requiring acknowledgment before re-submission
 function sendConfirmation(res, { message, details, action, formData, extraFields = {}, confirmText, backUrl }) {
-  const allFields = { ...formData, ...extraFields };
-  const hiddenFields = Object.entries(allFields)
-    .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
-    .join('\n        ');
-  res.send(renderTemplate('confirmMessage', {
-    message,
-    details: escapeHtml(details),
-    action,
-    hiddenFields,
-    confirmText: confirmText || 'Confirm',
-    backUrl
-  }));
+  sendJson(res, 409, {
+    success: false,
+    results: [{ details, action, confirmText: confirmText || 'Confirm', formData: { ...formData, ...extraFields } }],
+    resultsType: 'confirmation'
+  });
 }
 
 // Creates an Express router with form pages and POST handlers from config

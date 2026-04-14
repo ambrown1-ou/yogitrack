@@ -14,7 +14,7 @@ module.exports = createRouter({
     addCustomer:    { fields: ['firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth'] },
     getCustomerById:   { fields: ['customerId'], required: ['customerId'] },
     getCustomerByName: { fields: ['firstName', 'lastName'], required: ['lastName'] },
-    getAll:            { fields: [] },
+    getAllCustomers:    { fields: [] },
     updateCustomer: { fields: ['customerId', 'firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth'], required: ['customerId'] },
     deleteCustomer: { fields: ['customerId'], required: ['customerId'] },
   },
@@ -22,7 +22,7 @@ module.exports = createRouter({
     // Creates a new customer with duplicate name detection; prompts for confirmation if a match exists
     async addCustomer(req, res) {
       const { firstName, lastName, address, phone, email, preferredContactMethod, dateOfBirth, confirmDuplicate } = req.body;
-      const errors = validateCustomer(req.body);
+      const errors = Customer.validate(req.body);
       if (errors.length) return sendError(res, 400, 'Validation Failed', errors.join('; '), BACK);
 
       // Duplicate name warning - allow proceed with confirmation
@@ -88,7 +88,7 @@ module.exports = createRouter({
     },
 
     // Retrieves all customers
-    async getAll(req, res) {
+    async getAllCustomers(req, res) {
       const docs = await Customer.find({}).lean();
       sendSuccess(res, `Retrieved ${docs.length} Customers`, docs.map(Customer.serialize.bind(Customer)), BACK);
     },
