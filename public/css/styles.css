@@ -115,6 +115,17 @@ a {
   color: #000;
 }
 
+.link-button {
+  flex: unset;
+  padding: 0;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  font: inherit;
+  color: #000;
+  cursor: pointer;
+}
+
 .methods-list {
   list-style: none;
   padding: 0;

@@ -11,7 +11,7 @@ module.exports = createRouter({
   methods: {
     addPackage: { fields: ['packageName', 'category', 'numberOfClasses', 'startDate', 'endDate', 'price'] },
     getPackage: { fields: ['packageId'], required: ['packageId'] },
-    getAll: { fields: [] },
+    getAllPackages: { fields: [] },
     updatePackage: { fields: ['packageId', 'packageName', 'category', 'numberOfClasses', 'startDate', 'endDate', 'price'], required: ['packageId'] },
     deletePackage: { fields: ['packageId'], required: ['packageId'] },
   },
@@ -46,7 +46,7 @@ module.exports = createRouter({
       sendSuccess(res, 'Package Retrieved', Package.serialize(doc), BACK);
     },
 
-    async getAll(req, res) {
+    async getAllPackages(req, res) {
       const docs = await Package.find({}).lean();
       sendSuccess(res, `Retrieved ${docs.length} Packages`, docs.map(Package.serialize.bind(Package)), BACK);
     },

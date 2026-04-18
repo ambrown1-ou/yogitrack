@@ -137,7 +137,7 @@ function renderForm(methodName, baseUrl, fields, moduleTitle) {
     methodName,
     action: `${baseUrl}/${methodName}`,
     baseUrl,
-    fieldInputs,
+    fieldInputs: `<input type="hidden" name="_browserForm" value="1">${fieldInputs}`,
     submitText
   });
 }

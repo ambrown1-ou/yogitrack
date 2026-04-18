@@ -17,7 +17,10 @@ router.get("/", async (req, res) => {
     ? `${escapeHtml(req.session.username)} (${escapeHtml(req.session.role || 'unknown role')})`
     : 'Not logged in';
   const loginStatusColor = req.session?.username ? 'green' : '#555';
-  const loginStatus = `<span style="color:${loginStatusColor};font-weight:bold">${loginUser}</span>`;
+  const logoutLink = req.session?.username
+    ? ` &mdash; <form method="POST" action="/api/user/logout" style="display:inline"><input type="hidden" name="_browserForm" value="1"><button type="submit" class="link-button">Logout</button></form>`
+    : '';
+  const loginStatus = `<span style="color:${loginStatusColor};font-weight:bold">${loginUser}</span>${logoutLink}`;
 
   // Build module list for the landing page table
   const modules = [

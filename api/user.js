@@ -61,6 +61,7 @@ module.exports = createRouter({
       req.session.username = user.username;
       req.session.role = user.role;
 
+      if (req.body._browserForm === '1') return res.redirect('/api');
       sendSuccess(res, 'Login Successful', User.toResponse(user), BACK);
     },
 
@@ -86,11 +87,13 @@ module.exports = createRouter({
 
     // End the current session
     logout(req, res) {
+      const browserForm = req.body._browserForm === '1';
       req.session.destroy((err) => {
         if (err) {
           return sendError(res, 500, 'Logout Failed', 'Unable to end the session', BACK);
         }
 
+        if (browserForm) return res.redirect('/api');
         sendSuccess(res, 'Logout Successful', { loggedOut: true }, BACK);
       });
     }

@@ -4,6 +4,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const dbStatus = require("./modules/dbStatus");
+const { initializeCounters } = require("./modules/idGenerator");
 const User = require("./models/User");
 
 // Import API modules
@@ -111,6 +112,7 @@ async function start() {
       serverSelectionTimeoutMS: 5000
     });
     console.log("MongoDB connected");
+    await initializeCounters();
     await ensureTestUsers();
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
