@@ -42,9 +42,9 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Redirect root to the API landing page
+// Redirect root to the app dashboard
 app.get("/", (req, res) => {
-  res.redirect("/api");
+  res.redirect("/app");
 });
 
 app.use(express.static(publicDir));
@@ -74,15 +74,15 @@ app.get("/status", async (req, res) => {
 // Require authentication for all API routes except /api/user/login and /api/user/register
 app.use("/api", (req, res, next) => {
   // Allow unauthenticated access to login and register endpoints
-  if ((req.path === '/user/login' || req.path === '/user/register') && req.method === 'POST') {
+  if ((req.path === '/user/login' || req.path === '/user/register') && (req.method === 'POST' || req.method === 'GET')) {
     return next();
   }
 
   // Check if user is authenticated
   if (!req.session.userId) {
-    // For browser requests, redirect to login page
-    if (req.accepts('html') && !req.accepts('json')) {
-      return res.redirect('/app');
+    // For browser requests, show login message
+    if (req.accepts('html')) {
+      return res.status(401).send('<h1>Authentication Required</h1><p>You must be logged in to access the API. <a href="/app">Go to login</a></p>');
     }
     // For API requests, return 401 error
     return res.status(401).json({

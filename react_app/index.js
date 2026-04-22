@@ -28,9 +28,18 @@ function Login({ onLoginSuccess, isLoading, error }) {
 
       const data = await response.json();
 
-      // If login successful, call parent callback and clear form
+      // If login successful, fetch full user data and show dashboard
       if (data.success) {
-        onLoginSuccess(payload);
+        // Get full user data including role from getCurrentUser
+        const userResponse = await fetch('/api/user/getCurrentUser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const userData = await userResponse.json();
+        
+        if (userData.success && userData.results[0]) {
+          onLoginSuccess(userData.results[0]);
+        }
         setUsername('');
         setPassword('');
       } else {
