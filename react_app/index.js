@@ -94,7 +94,6 @@ function Login({ onLoginSuccess, isLoading, error }) {
 
 // Dashboard component - Shows after successful login
 function Dashboard({ user, onLogout }) {
-  console.dir(user);
   return (
     <div className="container">
       <div className="header">
@@ -155,7 +154,6 @@ function App() {
     setUser(loginData);
     setIsLoggedIn(true);
     setError('');
-    alert('Welcome ' + loginData.username + '!');
   };
 
   // handleLogout - Called when user clicks logout button

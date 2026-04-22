@@ -58,6 +58,11 @@ app.use(express.static(path.join(__dirname, "react_app")));
 
 // Render the database status page
 app.get("/status", async (req, res) => {
+  // Check if user is authenticated
+  if (!req.session.userId) {
+    return res.status(401).send('<h1>Authentication Required</h1><p>You must be logged in to view the database status. <a href="/app">Go to login</a></p>');
+  }
+
   try {
     const html = await dbStatus.renderStatusPage();
     res.send(html);
