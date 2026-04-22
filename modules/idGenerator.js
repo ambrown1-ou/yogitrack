@@ -19,12 +19,12 @@ const counterSchema = new mongoose.Schema({
 const Counter = mongoose.model('Counter', counterSchema);
 
 const ENTITY_CONFIG = {
-  instructor:  { prefix: 'I',  model: Instructor,  field: 'instructorId' },
-  customer:    { prefix: 'C',  model: Customer,    field: 'customerId' },
-  package:     { prefix: 'P',  model: Package,     field: 'packageId' },
-  class:       { prefix: 'CL', model: Class,       field: 'classId' },
-  sale:        { prefix: 'S',  model: Sale,        field: 'saleId' },
-  attendance:  { prefix: 'A',  model: Attendance,  field: 'attendanceId' },
+  instructor: { prefix: 'I', model: Instructor, field: 'instructorId' },
+  customer: { prefix: 'C', model: Customer, field: 'customerId' },
+  package: { prefix: 'P', model: Package, field: 'packageId' },
+  class: { prefix: 'CL', model: Class, field: 'classId' },
+  sale: { prefix: 'S', model: Sale, field: 'saleId' },
+  attendance: { prefix: 'A', model: Attendance, field: 'attendanceId' },
 };
 
 // Extracts the numeric portion from an entity ID
@@ -64,9 +64,9 @@ async function initializeCounters() {
     const currentMax = lastRecord?.[field] ? extractNumber(lastRecord[field]) : 0;
     if (currentMax > 0) {
       await Counter.findOneAndUpdate(
-        { _id: entityType, seq: { $lt: currentMax } },
-        { $set: { seq: currentMax } },
-        { upsert: true }
+        { _id: entityType },
+        { $max: { seq: currentMax } },
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }
