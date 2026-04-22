@@ -61,7 +61,9 @@ async function initializeCounters() {
       .select(field)
       .lean();
 
-    const currentMax = lastRecord?.[field] ? extractNumber(lastRecord[field]) : 0;
+    // Extract max value from last record, or default to 0
+    const recordValue = lastRecord ? lastRecord[field] : null;
+    const currentMax = recordValue ? extractNumber(recordValue) : 0;
     if (currentMax > 0) {
       await Counter.findOneAndUpdate(
         { _id: entityType },

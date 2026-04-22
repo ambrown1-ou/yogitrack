@@ -170,7 +170,6 @@ module.exports = createRouter({
 			if (!doc)
 				return sendError(res, 404, 'Customer Not Found', `No customer found with ID: ${customerId}`, BACK);
 
-			// A5: Check for related sales or attendance records
 			const relatedSales = await Sale.countDocuments({
 				customerId: customerId.trim()
 			});
@@ -183,11 +182,10 @@ module.exports = createRouter({
 				doc.isActive = false;
 				await doc.save();
 				return sendSuccess(
-          res, 
-          'Customer Deactivated',
-          `Customer ${customerId.trim()} has ${relatedSales} sale(s) and ${relatedAttendance} attendance record(s). The customer has been marked inactive instead of deleted.`,
-					BACK
-        );
+					res,
+					'Customer Deactivated',
+`Customer ${customerId.trim()} has ${relatedSales} sale(s) and ${relatedAttendance} attendance record(s). The customer has been marked inactive instead of deleted.`,
+					BACK);
 			}
 
 			await Customer.deleteOne({

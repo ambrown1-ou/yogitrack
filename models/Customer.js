@@ -94,7 +94,13 @@ customerSchema.statics.validate = function(data) {
 
 // Serializes a Customer document to a plain API response object with formatted dates
 customerSchema.statics.serialize = function(doc) {
-  const fmt = val => val instanceof Date ? val.toISOString().split('T')[0] : val;
+  // Helper to format dates as YYYY-MM-DD
+  const formatDateField = function(value) {
+    if (value instanceof Date) {
+      return value.toISOString().split('T')[0];
+    }
+    return value;
+  };
   return {
     customerId: doc.customerId,
     firstName: doc.firstName,
@@ -102,10 +108,10 @@ customerSchema.statics.serialize = function(doc) {
     email: doc.email,
     phone: doc.phone,
     address: doc.address,
-    dateOfBirth: fmt(doc.dateOfBirth),
+    dateOfBirth: formatDateField(doc.dateOfBirth),
     preferredContactMethod: doc.preferredContactMethod,
     classBalance: doc.classBalance,
-    joinDate: fmt(doc.joinDate),
+    joinDate: formatDateField(doc.joinDate),
     packages: doc.packages || [],
     isActive: doc.isActive
   };

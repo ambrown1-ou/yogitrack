@@ -49,15 +49,19 @@ async function renderStatusPage() {
     );
   }
 
-  const collectionsHtml =
-    collections.length > 0
-      ? `<table>
+// Build collections table HTML
+	let collectionsHtml;
+	if (collections.length > 0) {
+		const tableRows = collections
+			.map((name) => `<tr><td>${escapeHtml(name)}</td><td>${counts[name].toLocaleString()}</td></tr>`)
+			.join("");
+		collectionsHtml = `<table>
           <thead><tr><th>Collection</th><th>Records</th></tr></thead>
-          <tbody>${collections
-            .map((name) => `<tr><td>${escapeHtml(name)}</td><td>${counts[name].toLocaleString()}</td></tr>`)
-            .join("")}</tbody>
-        </table>`
-      : "<p>No collections available.</p>";
+          <tbody>${tableRows}</tbody>
+        </table>`;
+	} else {
+		collectionsHtml = "<p>No collections available.</p>";
+	}
 
   return `<!doctype html>
 <html lang="en">
