@@ -1,4 +1,4 @@
-const { createRouter } = require('../modules/routeFactory');
+const { createRouter } = require('../api_helpers/routeFactory');
 
 // TODO: Replace these stubbed method definitions with Attendance model handlers.
 module.exports = createRouter({

@@ -5,12 +5,12 @@
  */
 
 const mongoose = require('mongoose');
-const Instructor = require('../models/Instructor');
-const Customer = require('../models/Customer');
-const Package = require('../models/Package');
-const Class = require('../models/Class');
-const Sale = require('../models/Sale');
-const Attendance = require('../models/Attendance');
+const Instructor = require('../api_models/Instructor');
+const Customer = require('../api_models/Customer');
+const Package = require('../api_models/Package');
+const Class = require('../api_models/Class');
+const Sale = require('../api_models/Sale');
+const Attendance = require('../api_models/Attendance');
 
 const counterSchema = new mongoose.Schema({
   _id: String,

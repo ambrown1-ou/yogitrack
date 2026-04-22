@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const { renderTemplate } = require("../modules/templateEngine");
-const { getConnectionCode } = require("../modules/dbStatus");
-const { escapeHtml } = require("../modules/routeFactory");
+const { renderTemplate } = require("../api_helpers/templateEngine");
+const { getConnectionCode } = require("../api_helpers/dbStatus");
+const { escapeHtml } = require("../api_helpers/routeFactory");
 
 // GET / - Render the API landing page with DB status, collection record counts, and module links
 router.get("/", async(req, res) => {

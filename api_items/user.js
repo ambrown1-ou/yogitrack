@@ -6,8 +6,8 @@
   4. Logout: POST to destroy the session and clear auth state
 */
 
-const { createRouter, sendError, sendSuccess } = require('../modules/routeFactory');
-const User = require('../models/User');
+const { createRouter, sendError, sendSuccess } = require('../api_helpers/routeFactory');
+const User = require('../api_models/User');
 const BACK = '/api/user';
 
 // Route handlers for browser-friendly user auth actions
@@ -17,7 +17,7 @@ module.exports = createRouter({
   methods: {
     register: { fields: ['username', 'password', 'role', 'email'] },
     login: { fields: ['username', 'password'] },
-    user: { fields: [] },
+    getCurrentUser: { fields: [] },
     getAllUsers: { fields: [] },
     logout: { fields: [] }
   },
@@ -72,7 +72,7 @@ module.exports = createRouter({
     },
 
     // Return the authenticated user tied to the current session
-    async user(req, res) {
+    async getCurrentUser(req, res) {
       if (!req.session.userId) {
         return sendError(res, 401, 'Not Authenticated', 'No active login session found', BACK);
       }

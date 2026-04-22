@@ -1,8 +1,8 @@
-const { createRouter, sendError, sendSuccess, sendConfirmation, requireField } = require('../modules/routeFactory');
-const Customer = require('../models/Customer');
-const Sale = require('../models/Sale');
-const Attendance = require('../models/Attendance');
-const { generateId } = require('../modules/idGenerator');
+const { createRouter, sendError, sendSuccess, sendConfirmation, requireField } = require('../api_helpers/routeFactory');
+const Customer = require('../api_models/Customer');
+const Sale = require('../api_models/Sale');
+const Attendance = require('../api_models/Attendance');
+const { generateId } = require('../api_helpers/idGenerator');
 
 const BACK = '/api/customer';
 

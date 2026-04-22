@@ -3,19 +3,19 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
-const dbStatus = require("./modules/dbStatus");
-const { initializeCounters } = require("./modules/idGenerator");
-const User = require("./models/User");
+const dbStatus = require("./api_helpers/dbStatus");
+const { initializeCounters } = require("./api_helpers/idGenerator");
+const User = require("./api_models/User");
 
 // Import API modules
-const apiRoot = require("./api/index");
-const userAPI = require("./api/user");
-const instructorAPI = require("./api/instructor");
-const customerAPI = require("./api/customer");
-const packageAPI = require("./api/package");
-const saleAPI = require("./api/sale");
-const classAPI = require("./api/class");
-const attendanceAPI = require("./api/attendance");
+const apiRoot = require("./api_items/index");
+const userAPI = require("./api_items/user");
+const instructorAPI = require("./api_items/instructor");
+const customerAPI = require("./api_items/customer");
+const packageAPI = require("./api_items/package");
+const saleAPI = require("./api_items/sale");
+const classAPI = require("./api_items/class");
+const attendanceAPI = require("./api_items/attendance");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +48,13 @@ app.get("/", (req, res) => {
 });
 
 app.use(express.static(publicDir));
+
+// Serve React app
+app.get("/app", (req, res) => {
+  res.sendFile(path.join(__dirname, "react_app", "index.html"));
+});
+
+app.use(express.static(path.join(__dirname, "react_app")));
 
 // Render the database status page
 app.get("/status", async (req, res) => {
