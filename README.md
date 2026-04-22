@@ -16,18 +16,8 @@ A yoga studio management API built with Node.js, Express, and MongoDB.
    MONGODB_URI=your_mongodb_connection_string
    SESSION_SECRET=your_secret
    PORT=3000
-   TEST_USER_PASSWORD=
-   TEST_MANAGER_USERNAME=manager_test
-   TEST_INSTRUCTOR_USERNAME=instructor_test
    ```
 3. Start the server: `npm start`
-
-## Built-in Test Accounts
-
-On startup, YogiTrack creates these test users if they do not already exist only when `TEST_USER_PASSWORD` is set:
-
-- Manager: `manager_test`
-- Instructor: `instructor_test`
 - Password: value of `TEST_USER_PASSWORD`
 
 There is no default password for test acccounts.
@@ -79,7 +69,7 @@ To confirm, re-POST the `formData` object from `results[0]` to the `action` URL.
 
 ## API Routes
 
-- `/api/user` - Authentication
+- `/api/user` - Manage Users
 - `/api/instructor` - Instructors - IN PROGRESS
 - `/api/customer` - Customers
 - `/api/class` - Classes - IN PROGRESS

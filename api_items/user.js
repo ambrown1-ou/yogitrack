@@ -2,7 +2,7 @@
   User Module: Handles registration, login, session, and logout for manager and instructor users.
   1. Register: POST username, password, and role -> password is hashed -> user saved to DB
   2. Login: POST username and password -> verify credentials -> create session
-  3. Get User: POST to retrieve current user from session
+  3. GetCurrentUser: POST to retrieve current user from session
   4. Logout: POST to destroy the session and clear auth state
 */
 

@@ -1,21 +1,20 @@
 const { useState } = React;
+const { useEffect } = React;
 
 // Login component - Displays login form and sends credentials to backend
 function Login({ onLoginSuccess, isLoading, error }) {
   // State for form inputs
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('manager');
 
   // handleSubmit - Called when form is submitted
-  // Sends username, password, and role to /api/user/login endpoint
+  // Sends username and password to /api/user/login endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     const payload = {
       username: username.trim(),
-      password: password,
-      role: role
+      password: password
     };
 
     try {
@@ -81,20 +80,6 @@ function Login({ onLoginSuccess, isLoading, error }) {
             />
           </div>
 
-          {/* Role selector dropdown */}
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="manager">Manager</option>
-              <option value="instructor">Instructor</option>
-            </select>
-          </div>
-
           {/* Submit button */}
           <div className="form-actions">
             <button type="submit" disabled={isLoading}>
@@ -102,10 +87,6 @@ function Login({ onLoginSuccess, isLoading, error }) {
             </button>
           </div>
         </form>
-
-        <p style={{ marginTop: '16px', fontSize: '0.9em', color: '#666' }}>
-          Test accounts available with TEST_MANAGER_USERNAME and TEST_INSTRUCTOR_USERNAME environment variables
-        </p>
       </div>
     </div>
   );
@@ -113,6 +94,7 @@ function Login({ onLoginSuccess, isLoading, error }) {
 
 // Dashboard component - Shows after successful login
 function Dashboard({ user, onLogout }) {
+  console.dir(user);
   return (
     <div className="container">
       <div className="header">
@@ -145,6 +127,28 @@ function App() {
   // Store any error messages
   const [error, setError] = useState('');
 
+  // Check if user is already logged in when component mounts
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/user/getCurrentUser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.results[0]) {
+          const user = data.results[0];
+          setUser(user);
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        // No session or error checking session - user stays on login
+      }
+    };
+    checkSession();
+  }, []);
+
   // handleLoginSuccess - Called when user successfully logs in
   // Stores user data and shows dashboard
   const handleLoginSuccess = (loginData) => {
@@ -156,7 +160,15 @@ function App() {
 
   // handleLogout - Called when user clicks logout button
   // Clears user data and returns to login screen
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/user/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
     setIsLoggedIn(false);
     setUser(null);
   };
