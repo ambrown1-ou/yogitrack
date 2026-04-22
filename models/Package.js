@@ -93,3 +93,4 @@ packageSchema.statics.serialize = function(doc) {
 };
 
 module.exports = mongoose.model('Package', packageSchema);
+s

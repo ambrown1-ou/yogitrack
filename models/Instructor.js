@@ -46,7 +46,7 @@ const instructorSchema = new mongoose.Schema({
 });
 
 // Validates raw form data before document creation or update; returns an array of error strings
-instructorSchema.statics.validate = function(data) {
+instructorSchema.statics.validate = function (data) {
   const errors = [];
   if (!data.firstName || typeof data.firstName !== 'string' || data.firstName.trim().length === 0)
     errors.push("First name is required");
@@ -62,7 +62,7 @@ instructorSchema.statics.validate = function(data) {
 };
 
 // Serializes an Instructor document to a plain API response object
-instructorSchema.statics.serialize = function(doc) {
+instructorSchema.statics.serialize = function (doc) {
   return {
     instructorId: doc.instructorId,
     firstName: doc.firstName,
