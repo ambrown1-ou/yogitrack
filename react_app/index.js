@@ -114,17 +114,10 @@ function Login({ onLoginSuccess, error }) {
 function Dashboard({ user, onLogout }) {
   return (
     <div className="container">
-      <div className="header">
+      <div className="card">
         <h1>Welcome, {user.username}</h1>
         <p>Role: {user.role}</p>
-      </div>
-
-      <div className="card">
-        <h2>Dashboard</h2>
-        <p>You are now logged in. More features coming soon.</p>
-        <button onClick={onLogout}>
-          Logout
-        </button>
+        <button onClick={onLogout}>Logout</button>
       </div>
     </div>
   );

@@ -68,14 +68,16 @@ userSchema.statics.normalizeUsername = function(username) {
   return String(username).trim();
 };
 
-// Finds a user by username (case-sensitive, trimmed)
+// Finds a user by username (case-insensitive, trimmed)
 userSchema.statics.findByUsername = function(username) {
-  return this.findOne({ username: String(username).trim() });
+  const safe = String(username).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return this.findOne({ username: new RegExp(`^${safe}$`, 'i') });
 };
 
 // Verifies credentials and updates lastLogin; returns the authenticated user or null
 userSchema.statics.authenticate = async function(username, password) {
-  const user = await this.findOne({ username: String(username).trim() });
+  const safe = String(username).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const user = await this.findOne({ username: new RegExp(`^${safe}$`, 'i') });
   if (!user) return null;
   const valid = await user.verifyPassword(password);
   if (!valid) return null;

@@ -15,7 +15,7 @@ module.exports = createRouter({
       required: ['firstName', 'lastName', 'email']
     },
     getInstructor: { fields: ['instructorId'], required: ['instructorId'] },
-    getAll: { fields: [] },
+    getAllInstructors: { fields: [] },
     updateInstructor: {
       fields: ['instructorId', 'firstName', 'lastName', 'email', 'phone', 'preferredContactMethod'],
       required: ['instructorId']
@@ -65,7 +65,7 @@ module.exports = createRouter({
     },
 
     // Returns all active instructor records
-    async getAll(req, res) {
+    async getAllInstructors(req, res) {
       const docs = await Instructor.find({ isActive: true }).lean();
       sendSuccess(res, `Retrieved ${docs.length} Instructor(s)`, docs.map(d => Instructor.serialize(d)), BACK);
     },

@@ -17,7 +17,7 @@ module.exports = createRouter({
     getAttendance: { fields: ['attendanceId'], required: ['attendanceId'] },
     getByClass: { fields: ['instanceId'], required: ['instanceId'] },
     getByCustomer: { fields: ['customerId'], required: ['customerId'] },
-    getAll: { fields: [] },
+    getAllAttendance: { fields: [] },
     deleteAttendance: { fields: ['attendanceId'], required: ['attendanceId'] },
   },
   handlers: {
@@ -107,7 +107,7 @@ module.exports = createRouter({
     },
 
     // Returns all attendance records
-    async getAll(req, res) {
+    async getAllAttendance(req, res) {
       const records = await Attendance.find({}).sort({ attendanceDate: -1 }).lean();
       sendSuccess(res, `Retrieved ${records.length} Attendance Record(s)`, records.map(r => Attendance.serialize(r)), BACK);
     },

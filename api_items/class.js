@@ -70,7 +70,7 @@ module.exports = createRouter({
       required: ['classId']
     },
     deleteClass: { fields: ['classId'], required: ['classId'] },
-    getInstancesByClass: { fields: ['classId'], required: ['classId'] },
+    getInstancesByClass: { fields: ['classId', 'startDate', 'endDate'], required: ['classId'] },
     updateInstance: {
       fields: ['instanceId', 'instructorId', 'startTime', 'duration', 'status', 'notes'],
       required: ['instanceId']
@@ -243,15 +243,23 @@ module.exports = createRouter({
       }, BACK);
     },
 
-    // Returns all instances for a class series, sorted by instanceDate
+    // Returns all instances for a class series, sorted by instanceDate.
+    // Optionally filters by startDate and/or endDate (inclusive, YYYY-MM-DD).
     async getInstancesByClass(req, res) {
-      const { classId } = req.body;
+      const { classId, startDate, endDate } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
       if (!series)
         return sendError(res, 404, 'Class Not Found', `No class series found with ID: ${classId}`, BACK);
 
-      const instances = await ClassInstance.find({ classId: classId.trim() })
+      const query = { classId: classId.trim() };
+      if (startDate || endDate) {
+        query.instanceDate = {};
+        if (startDate) query.instanceDate.$gte = new Date(startDate + 'T00:00:00Z');
+        if (endDate)   query.instanceDate.$lte = new Date(endDate   + 'T00:00:00Z');
+      }
+
+      const instances = await ClassInstance.find(query)
         .sort({ instanceDate: 1 })
         .lean();
 

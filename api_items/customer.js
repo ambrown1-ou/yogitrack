@@ -45,8 +45,8 @@ module.exports = createRouter({
 			// Duplicate name warning - allow proceed with confirmation
 			if (confirmDuplicate !== 'true') {
 				const existing = await Customer.findOne({
-					firstName: firstName.trim(),
-					lastName: lastName.trim()
+					firstName: new RegExp(`^${firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+					lastName: new RegExp(`^${lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
 				}).lean();
 				if (existing) {
 					return sendConfirmation(res, {
@@ -105,10 +105,10 @@ module.exports = createRouter({
 				return;
 
 			const query = {
-				lastName: lastName.trim()
+				lastName: new RegExp(`^${lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
 			};
 			if (firstName && typeof firstName === 'string' && firstName.trim())
-				query.firstName = firstName.trim();
+				query.firstName = new RegExp(`^${firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
 
 			const docs = await Customer.find(query).lean();
 			if (!docs.length)

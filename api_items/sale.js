@@ -8,7 +8,7 @@ module.exports = createRouter({
     addSale: { fields: ['customerId', 'packageId', 'amountPaid', 'paymentMode', 'paymentDateTime', 'validityStartDate', 'validityEndDate', 'notes'], required: ['customerId', 'packageId', 'amountPaid', 'paymentMode'] },
     getSale: { fields: ['saleId'], required: ['saleId'] },
     getByCustomer: { fields: ['customerId'], required: ['customerId'] },
-    getAll: { fields: [] },
+    getAllSales: { fields: [] },
     deleteSale: { fields: ['saleId'], required: ['saleId'] },
   }
 });
