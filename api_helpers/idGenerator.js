@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const Instructor = require('../api_models/Instructor');
 const Customer = require('../api_models/Customer');
 const Package = require('../api_models/Package');
-const Class = require('../api_models/Class');
+const { ClassSeries, ClassInstance } = require('../api_models/Class');
 const Sale = require('../api_models/Sale');
 const Attendance = require('../api_models/Attendance');
 
@@ -22,7 +22,8 @@ const ENTITY_CONFIG = {
   instructor: { prefix: 'I', model: Instructor, field: 'instructorId' },
   customer: { prefix: 'C', model: Customer, field: 'customerId' },
   package: { prefix: 'P', model: Package, field: 'packageId' },
-  class: { prefix: 'CL', model: Class, field: 'classId' },
+  class: { prefix: 'CL', model: ClassSeries, field: 'classId' },
+  instance: { prefix: 'CI', model: ClassInstance, field: 'instanceId' },
   sale: { prefix: 'S', model: Sale, field: 'saleId' },
   attendance: { prefix: 'A', model: Attendance, field: 'attendanceId' },
 };

@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['manager', 'instructor'],
+    enum: ['manager', 'instructor', 'customer'],
     required: true
   },
   email: {
@@ -50,8 +50,8 @@ userSchema.statics.validate = function(data) {
   const errors = [];
   if (!data.username || !data.password || !data.role)
     errors.push('Username, password, and role are required');
-  if (data.role && !['manager', 'instructor'].includes(data.role))
-    errors.push('Role must be "manager" or "instructor"');
+  if (data.role && !['manager', 'instructor', 'customer'].includes(data.role))
+    errors.push('Role must be "manager", "instructor", or "customer"');
   return errors;
 };
 
@@ -89,14 +89,15 @@ userSchema.statics.toResponse = function(user) {
   return {
     _id: user._id,
     username: user.username,
-    role: user.role
+    role: user.role,
+    email: user.email
   };
 };
 
 // Returns all users as safe response objects (excludes passwords)
 userSchema.statics.getAllUsers = async function() {
   const users = await this.find({}).lean();
-  return users.map(u => ({ _id: u._id, username: u.username, role: u.role }));
+  return users.map(u => ({ _id: u._id, username: u.username, role: u.role, email: u.email }));
 };
 
 // Compares a plain-text password against this user's stored hash
