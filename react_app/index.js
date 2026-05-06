@@ -2,16 +2,21 @@ const { useState } = React;
 const { useEffect } = React;
 
 // Login component - Displays login form and sends credentials to backend
-function Login({ onLoginSuccess, isLoading, error }) {
+function Login({ onLoginSuccess, error }) {
   // State for form inputs
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // Track submission in progress and any login error
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   // handleSubmit - Called when form is submitted
   // Sends username and password to /api/user/login endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsSubmitting(true);
+    setLoginError('');
+
     const payload = {
       username: username.trim(),
       password: password
@@ -45,10 +50,14 @@ function Login({ onLoginSuccess, isLoading, error }) {
       } else {
         // Show error message from response
         const errorMessage = data.results[0] ? data.results[0].error : 'Unknown error';
-        alert('Login failed: ' + errorMessage);
+        console.error('Login failed:', errorMessage);
+        setLoginError('Login failed: ' + errorMessage);
       }
     } catch (err) {
-      alert('Error: ' + err.message);
+      console.error('Login error:', err.message);
+      setLoginError('Error: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -58,7 +67,7 @@ function Login({ onLoginSuccess, isLoading, error }) {
         <h1>YogiTrack</h1>
         <p>Studio Management System</p>
 
-        {error && <p style={{ color: 'red', marginBottom: '16px' }}>{error}</p>}
+        {(error || loginError) && <p style={{ color: 'red', marginBottom: '16px' }}>{loginError || error}</p>}
 
         <form onSubmit={handleSubmit}>
           {/* Username input field */}
@@ -71,7 +80,7 @@ function Login({ onLoginSuccess, isLoading, error }) {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
               required
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -85,14 +94,14 @@ function Login({ onLoginSuccess, isLoading, error }) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
               required
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
           </div>
 
           {/* Submit button */}
           <div className="form-actions">
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
           </div>
         </form>
@@ -182,7 +191,7 @@ function App() {
 
   // Show login form if not logged in, otherwise show dashboard
   if (!isLoggedIn) {
-    return <Login onLoginSuccess={handleLoginSuccess} isLoading={isLoading} error={error} />;
+    return <Login onLoginSuccess={handleLoginSuccess} error={error} />;
   }
 
   return <Dashboard user={user} onLogout={handleLogout} />;

@@ -107,17 +107,28 @@ app.use("/api/attendance", attendanceAPI);
 
 // Connect to MongoDB and start the Express server
 async function start() {
+  // Warn early if required env vars are missing
+  if (!process.env.MONGODB_URI) console.error("WARNING: MONGODB_URI is not set");
+  if (!process.env.DB_NAME)     console.error("WARNING: DB_NAME is not set");
+
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       dbName: process.env.DB_NAME,
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 5000,
+      // Fail buffered operations quickly so clients get a 500 instead of a 30s Heroku timeout
+      bufferTimeoutMS: 8000
     });
-    console.log("MongoDB connected");
+    console.log("MongoDB connected to", process.env.DB_NAME);
     await initializeCounters();
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
     console.error("App will start without database connectivity");
   }
+
+  // Log subsequent connection events for Heroku log visibility
+  mongoose.connection.on('error',        (err) => console.error("MongoDB error:", err.message));
+  mongoose.connection.on('disconnected', ()    => console.warn("MongoDB disconnected"));
+  mongoose.connection.on('reconnected',  ()    => console.log("MongoDB reconnected"));
 
   app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
