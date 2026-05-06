@@ -111,6 +111,12 @@ async function start() {
   if (!process.env.MONGODB_URI) console.error("WARNING: MONGODB_URI is not set");
   if (!process.env.DB_NAME)     console.error("WARNING: DB_NAME is not set");
 
+  // Start listening immediately so Heroku marks the dyno as UP right away.
+  // MongoDB connection happens concurrently — buffered operations will wait for it.
+  app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+  });
+
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       dbName: process.env.DB_NAME,
@@ -129,10 +135,6 @@ async function start() {
   mongoose.connection.on('error',        (err) => console.error("MongoDB error:", err.message));
   mongoose.connection.on('disconnected', ()    => console.warn("MongoDB disconnected"));
   mongoose.connection.on('reconnected',  ()    => console.log("MongoDB reconnected"));
-
-  app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
-  });
 }
 
 start();
