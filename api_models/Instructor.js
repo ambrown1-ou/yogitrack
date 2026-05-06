@@ -17,16 +17,15 @@ const instructorSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  // Email is required and unique; serves as the join key linking this record to a User account
   email: {
     type: String,
+    required: true,
+    unique: true,
     trim: true,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
   },
   phone: {
-    type: String,
-    trim: true
-  },
-  address: {
     type: String,
     trim: true
   },
@@ -52,7 +51,9 @@ instructorSchema.statics.validate = function (data) {
     errors.push("First name is required");
   if (!data.lastName || typeof data.lastName !== 'string' || data.lastName.trim().length === 0)
     errors.push("Last name is required");
-  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+  if (!data.email || typeof data.email !== 'string' || data.email.trim().length === 0)
+    errors.push("Email is required");
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
     errors.push("Email must be valid");
   if (data.phone && !/^\d{10,}$/.test(data.phone.replace(/\D/g, '')))
     errors.push("Phone must contain at least 10 digits");
@@ -69,7 +70,6 @@ instructorSchema.statics.serialize = function (doc) {
     lastName: doc.lastName,
     email: doc.email,
     phone: doc.phone,
-    address: doc.address,
     preferredContactMethod: doc.preferredContactMethod,
     isActive: doc.isActive
   };

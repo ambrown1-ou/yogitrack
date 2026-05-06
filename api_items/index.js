@@ -61,8 +61,8 @@ router.get("/", async(req, res) => {
 		}, {
 			name: "Class",
 			path: "/api/class",
-			collection: "classes",
-			description: "Manage class schedule"
+			collection: "classseries",
+			description: "Manage class schedule (series and instances)"
 		}, {
 			name: "Attendance",
 			path: "/api/attendance",

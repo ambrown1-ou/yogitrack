@@ -23,8 +23,8 @@ function getFieldConfig(fieldName) {
 		},
 		classId: {
 			type: 'text',
-			placeholder: 'e.g., CL0001',
-			label: 'Class ID'
+			placeholder: 'e.g., CL00001',
+			label: 'Class Series ID'
 		},
 		packageId: {
 			type: 'text',
@@ -38,8 +38,13 @@ function getFieldConfig(fieldName) {
 		},
 		attendanceId: {
 			type: 'text',
-			placeholder: 'e.g., A20260411001',
+			placeholder: 'e.g., A00001',
 			label: 'Attendance ID'
+		},
+		instanceId: {
+			type: 'text',
+			placeholder: 'e.g., CI00001',
+			label: 'Instance ID'
 		},
 
 		// Names
@@ -69,7 +74,7 @@ function getFieldConfig(fieldName) {
 		},
 		role: {
 			type: 'select',
-			options: ['manager', 'instructor'],
+			options: ['manager', 'instructor', 'customer'],
 			label: 'Role',
 			required: true
 		},
@@ -193,10 +198,50 @@ function getFieldConfig(fieldName) {
 		},
 
 		// Class scheduling
+		className: {
+			type: 'text',
+			placeholder: 'e.g., Morning Yoga',
+			label: 'Class Name',
+			required: true
+		},
 		dayOfWeek: {
 			type: 'select',
 			options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
 			label: 'Day of Week'
+		},
+		daysOfWeek: {
+			type: 'checkboxGroup',
+			options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+			label: 'Days of Week',
+			required: true
+		},
+		startTime: {
+			type: 'time',
+			label: 'Start Time',
+			required: true
+		},
+		duration: {
+			type: 'select',
+			options: ['Short (60 min)', 'Standard (75 min)', 'Long (90 min)'],
+			valueMap: { 'Short (60 min)': 'Short', 'Standard (75 min)': 'Standard', 'Long (90 min)': 'Long' },
+			label: 'Duration',
+			required: true
+		},
+		defaultInstructorId: {
+			type: 'text',
+			placeholder: 'e.g., I00001 (optional)',
+			label: 'Default Instructor ID'
+		},
+		maxCapacity: {
+			type: 'number',
+			placeholder: '20',
+			label: 'Max Capacity',
+			min: '1'
+		},
+		negativeBalanceOverride: {
+			type: 'select',
+			options: ['false', 'true'],
+			label: 'Allow Negative Balance'
 		},
 
 		// Payment
@@ -207,7 +252,7 @@ function getFieldConfig(fieldName) {
 		},
 		status: {
 			type: 'select',
-			options: ['pending', 'completed', 'cancelled'],
+			options: ['scheduled', 'pending', 'completed', 'cancelled'],
 			label: 'Status'
 		},
 		notes: {
@@ -248,8 +293,12 @@ function renderFieldInput(fieldName, config) {
 		.join(' ');
 
 	if (type === 'select') {
+		const valueMap = config.valueMap || {};
 		const optionsHtml = options
-			.map(opt => `<option value="${opt}">${opt}</option>`)
+			.map(opt => {
+				const val = valueMap[opt] !== undefined ? valueMap[opt] : opt;
+				return `<option value="${val}">${opt}</option>`;
+			})
 			.join('');
 		return `
       <div class="form-group">
@@ -258,6 +307,21 @@ function renderFieldInput(fieldName, config) {
           <option value="">-- Select --</option>
           ${optionsHtml}
         </select>
+      </div>
+    `;
+	}
+
+	if (type === 'checkboxGroup') {
+		const checkboxes = options
+			.map(opt => `
+        <label style="display:inline-flex;align-items:center;margin-right:12px">
+          <input type="checkbox" name="${fieldName}" value="${opt}" style="margin-right:4px"> ${opt}
+        </label>`)
+			.join('');
+		return `
+      <div class="form-group">
+        <label>${label}${required ? ' <span style="color:red">*</span>' : ''}:</label>
+        <div style="margin-top:4px">${checkboxes}</div>
       </div>
     `;
 	}
