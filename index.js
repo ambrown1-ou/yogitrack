@@ -109,7 +109,7 @@ app.use("/api/attendance", attendanceAPI);
 async function start() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: 'yoga_hom',
+      dbName: process.env.DB_NAME,
       serverSelectionTimeoutMS: 5000
     });
     console.log("MongoDB connected");
