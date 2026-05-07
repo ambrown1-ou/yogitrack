@@ -1,5 +1,24 @@
-const { useState } = React;
-const { useEffect } = React;
+const { useState, useEffect } = React;
+
+// RolePicker - Shown when a manager user also has an instructor record.
+// Lets them choose whether to use the app as manager or instructor for this session.
+function RolePicker({ user, onPick }) {
+  return (
+    <div className="container narrow">
+      <div className="card">
+        <h1>YogiTrack</h1>
+        <p style={{ marginBottom: '24px' }}>
+          Welcome back, <strong>{user.username}</strong>. Your account has both manager and
+          instructor access. How would you like to view the app today?
+        </p>
+        <div className="form-actions">
+          <button onClick={() => onPick('manager')}>View as Manager</button>
+          <button onClick={() => onPick('instructor')}>View as Instructor</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Login component - Displays login form and sends credentials to backend
 function Login({ onLoginSuccess, error }) {
@@ -110,14 +129,81 @@ function Login({ onLoginSuccess, error }) {
   );
 }
 
-// Dashboard component - Shows after successful login
-function Dashboard({ user, onLogout }) {
+// Dashboard - Passes through to AppRouter with the effective view role.
+function Dashboard({ user, onLogout, viewRole, onSwitchRole }) {
+  const effectiveUser = Object.assign({}, user, { role: viewRole });
+  return <AppRouter user={effectiveUser} onLogout={onLogout} onSwitchRole={onSwitchRole} />;
+}
+
+// ChangePassword - Shown on first login (temp password). Forces the user to set a real password.
+function ChangePassword({ user, onComplete }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const results = await UserAPI.changePassword(newPassword);
+      onComplete(results[0]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="container">
+    <div className="container narrow">
       <div className="card">
-        <h1>Welcome, {user.username}</h1>
-        <p>Role: {user.role}</p>
-        <button onClick={onLogout}>Logout</button>
+        <h1>YogiTrack</h1>
+        <p style={{ marginBottom: '8px' }}>Welcome, <strong>{user.username}</strong>!</p>
+        <p style={{ marginBottom: '24px', color: '#555' }}>
+          You are logged in with a temporary password. Please set a new password before continuing.
+        </p>
+        {error && <p style={{ color: 'red', marginBottom: '12px' }}>{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="newPassword">New Password</label>
+            <input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter password"
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Set Password'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -131,11 +217,30 @@ function App() {
   // Store logged-in user data
   const [user, setUser] = useState(null);
   
-  // Track if login is in progress
-  const [isLoading, setIsLoading] = useState(false);
-  
   // Store any error messages
   const [error, setError] = useState('');
+
+  // Dual-role state: viewRole is null until resolved by checkDualRole
+  const [viewRole, setViewRole] = useState(null);
+  const [hasInstructorRecord, setHasInstructorRecord] = useState(false);
+  const [needsPasswordChange, setNeedsPasswordChange] = useState(false);
+
+  // If the user is a manager, check whether they also have an instructor record.
+  // Sets viewRole directly for non-managers; leaves it null (shows RolePicker) for dual-role managers.
+  const checkDualRole = async (userObj) => {
+    if (userObj.role === 'manager') {
+      try {
+        const record = await AttendanceAPI.getInstructorRecord(userObj.email);
+        if (record) {
+          setHasInstructorRecord(true);
+          return; // viewRole stays null → RolePicker will appear
+        }
+      } catch (err) {
+        // If the check fails, fall through and treat as a normal manager
+      }
+    }
+    setViewRole(userObj.role);
+  };
 
   // Check if user is already logged in when component mounts
   useEffect(() => {
@@ -148,9 +253,14 @@ function App() {
         const data = await response.json();
         
         if (data.success && data.results[0]) {
-          const user = data.results[0];
-          setUser(user);
+          const sessionUser = data.results[0];
+          setUser(sessionUser);
           setIsLoggedIn(true);
+          if (!sessionUser.lastLogin) {
+            setNeedsPasswordChange(true);
+          } else {
+            await checkDualRole(sessionUser);
+          }
         }
       } catch (err) {
         // No session or error checking session - user stays on login
@@ -160,15 +270,18 @@ function App() {
   }, []);
 
   // handleLoginSuccess - Called when user successfully logs in
-  // Stores user data and shows dashboard
-  const handleLoginSuccess = (loginData) => {
+  const handleLoginSuccess = async (loginData) => {
     setUser(loginData);
     setIsLoggedIn(true);
     setError('');
+    if (!loginData.lastLogin) {
+      setNeedsPasswordChange(true);
+    } else {
+      await checkDualRole(loginData);
+    }
   };
 
   // handleLogout - Called when user clicks logout button
-  // Clears user data and returns to login screen
   const handleLogout = async () => {
     try {
       await fetch('/api/user/logout', {
@@ -176,18 +289,47 @@ function App() {
         headers: { 'Content-Type': 'application/json' }
       });
     } catch (err) {
-      console.error('Error logging out:', err);
+      // Ignore logout errors
     }
     setIsLoggedIn(false);
     setUser(null);
+    setViewRole(null);
+    setHasInstructorRecord(false);
+    setNeedsPasswordChange(false);
   };
 
-  // Show login form if not logged in, otherwise show dashboard
+  // Show login form if not logged in
   if (!isLoggedIn) {
     return <Login onLoginSuccess={handleLoginSuccess} error={error} />;
   }
 
-  return <Dashboard user={user} onLogout={handleLogout} />;
+  // First login: force password change before proceeding
+  if (needsPasswordChange) {
+    return <ChangePassword user={user} onComplete={function (updatedUser) {
+      setUser(updatedUser);
+      setNeedsPasswordChange(false);
+      checkDualRole(updatedUser);
+    }} />;
+  }
+
+  // Manager with instructor record: show role picker until a choice is made
+  if (viewRole === null && hasInstructorRecord) {
+    return <RolePicker user={user} onPick={setViewRole} />;
+  }
+
+  // viewRole may briefly be null while checkDualRole is resolving
+  if (viewRole === null) {
+    return null;
+  }
+
+  return (
+    <Dashboard
+      user={user}
+      onLogout={handleLogout}
+      viewRole={viewRole}
+      onSwitchRole={hasInstructorRecord ? () => setViewRole(null) : null}
+    />
+  );
 }
 
 // Render the app into the root div

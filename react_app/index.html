@@ -11,6 +11,33 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Shared utilities and API clients (no JSX) -->
+  <script type="text/babel" src="/modules/common/utils.js"></script>
+  <script type="text/babel" src="/modules/common/apiClients.js"></script>
+
+  <!-- Attendance module -->
+  <script type="text/babel" src="/modules/Attendance/AttendanceForm.jsx"></script>
+  <script type="text/babel" src="/modules/Attendance/Attendance.jsx"></script>
+
+  <!-- Scheduling module -->
+  <script type="text/babel" src="/modules/Scheduling/InstanceForm.jsx"></script>
+  <script type="text/babel" src="/modules/Scheduling/ClassForm.jsx"></script>
+  <script type="text/babel" src="/modules/Scheduling/SeriesEditForm.jsx"></script>
+  <script type="text/babel" src="/modules/Scheduling/Scheduling.jsx"></script>
+
+  <!-- Calendar module -->
+  <script type="text/babel" src="/modules/Calendar/Calendar.jsx"></script>
+
+  <!-- Admin modules -->
+  <script type="text/babel" src="/modules/Admin/InstructorAdmin.jsx"></script>
+  <script type="text/babel" src="/modules/Admin/UsersAdmin.jsx"></script>
+  <script type="text/babel" src="/modules/Admin/CustomerAdmin.jsx"></script>
+
+  <!-- Role-based router (depends on all modules above) -->
+  <script type="text/babel" src="/modules/common/router.js"></script>
+
+  <!-- App entry point -->
   <script type="text/babel" src="/index.js"></script>
 </body>
 </html>

@@ -59,28 +59,28 @@ module.exports = createRouter({
   moduleTitle: 'Class',
   basePath: BACK,
   methods: {
-    addClass: {
+    addClassSeries: {
       fields: ['className', 'classType', 'startDate', 'endDate', 'daysOfWeek', 'startTime', 'duration', 'defaultInstructorId', 'maxCapacity', 'payRate'],
       required: ['className', 'classType', 'startDate', 'endDate', 'daysOfWeek', 'startTime', 'duration', 'payRate']
     },
-    getClass: { fields: ['classId'], required: ['classId'] },
-    getAllClasses: { fields: [] },
-    updateClass: {
+    getClassSeries: { fields: ['classId'], required: ['classId'] },
+    getAllClassSeries: { fields: [] },
+    updateClassSeries: {
       fields: ['classId', 'className', 'classType', 'maxCapacity', 'payRate', 'defaultInstructorId'],
       required: ['classId']
     },
-    deleteClass: { fields: ['classId'], required: ['classId'] },
-    getInstancesByClass: { fields: ['classId', 'startDate', 'endDate'], required: ['classId'] },
-    updateInstance: {
+    deleteClassSeries: { fields: ['classId'], required: ['classId'] },
+    getClassInstances: { fields: ['classId', 'startDate', 'endDate'], required: ['classId'] },
+    updateClassInstance: {
       fields: ['instanceId', 'instructorId', 'startTime', 'duration', 'status', 'notes'],
       required: ['instanceId']
     },
-    cancelInstance: { fields: ['instanceId'], required: ['instanceId'] },
+    cancelClassInstance: { fields: ['instanceId'], required: ['instanceId'] },
   },
   handlers: {
     // Creates a ClassSeries and generates one ClassInstance for each matching date in the range.
     // Validates that no instance would conflict with an existing scheduled class in the studio.
-    async addClass(req, res) {
+    async addClassSeries(req, res) {
       // Normalize daysOfWeek — form may send it as a single string or array
       const raw = req.body;
       if (raw.daysOfWeek && !Array.isArray(raw.daysOfWeek)) {
@@ -161,7 +161,7 @@ module.exports = createRouter({
     },
 
     // Retrieves a ClassSeries by classId, including instance count
-    async getClass(req, res) {
+    async getClassSeries(req, res) {
       const { classId } = req.body;
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
       if (!series)
@@ -172,7 +172,7 @@ module.exports = createRouter({
     },
 
     // Returns all active class series with instance counts
-    async getAllClasses(req, res) {
+    async getAllClassSeries(req, res) {
       const allSeries = await ClassSeries.find({ isActive: true }).lean();
       const results = await Promise.all(allSeries.map(async s => {
         const instanceCount = await ClassInstance.countDocuments({ classId: s.classId });
@@ -182,7 +182,7 @@ module.exports = createRouter({
     },
 
     // Updates series metadata only — does not modify existing instances
-    async updateClass(req, res) {
+    async updateClassSeries(req, res) {
       const { classId, className, classType, maxCapacity, payRate, defaultInstructorId } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() });
@@ -221,7 +221,7 @@ module.exports = createRouter({
     },
 
     // Soft-deletes a series and cancels all future instances
-    async deleteClass(req, res) {
+    async deleteClassSeries(req, res) {
       const { classId } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
@@ -245,7 +245,7 @@ module.exports = createRouter({
 
     // Returns all instances for a class series, sorted by instanceDate.
     // Optionally filters by startDate and/or endDate (inclusive, YYYY-MM-DD).
-    async getInstancesByClass(req, res) {
+    async getClassInstances(req, res) {
       const { classId, startDate, endDate } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
@@ -268,7 +268,7 @@ module.exports = createRouter({
     },
 
     // Updates a single class instance independently; re-checks studio conflicts if time or duration changes
-    async updateInstance(req, res) {
+    async updateClassInstance(req, res) {
       const { instanceId, instructorId, startTime, duration, status, notes } = req.body;
 
       const inst = await ClassInstance.findOne({ instanceId: instanceId.trim() });
@@ -312,7 +312,7 @@ module.exports = createRouter({
     },
 
     // Cancels a single class instance
-    async cancelInstance(req, res) {
+    async cancelClassInstance(req, res) {
       const { instanceId } = req.body;
 
       const inst = await ClassInstance.findOne({ instanceId: instanceId.trim() });

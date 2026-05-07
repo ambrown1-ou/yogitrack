@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Database Status</title>
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="container medium">
+    <div class="card">
+      <h1>Database Status</h1>
+
+      <p><strong>Connection code:</strong> {{connectionCode}}</p>
+      <p><strong>Connection status:</strong> {{connectionText}}</p>
+      <p><strong>Database name:</strong> {{databaseName}}</p>
+
+      <h2>Collections</h2>
+      {{collectionsHtml}}
+    </div>
+  </main>
+</body>
+</html>

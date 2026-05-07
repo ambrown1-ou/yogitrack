@@ -11,7 +11,7 @@ module.exports = createRouter({
   basePath: BACK,
   methods: {
     addInstructor: {
-      fields: ['firstName', 'lastName', 'email', 'phone', 'preferredContactMethod'],
+      fields: ['firstName', 'lastName', 'email', 'phone', 'preferredContactMethod', 'username'],
       required: ['firstName', 'lastName', 'email']
     },
     getInstructor: { fields: ['instructorId'], required: ['instructorId'] },
@@ -23,23 +23,53 @@ module.exports = createRouter({
     deleteInstructor: { fields: ['instructorId'], required: ['instructorId'] },
   },
   handlers: {
-    // Creates a new instructor; requires a matching User account (role instructor or manager) by email
+    // Creates a new instructor; auto-creates a User account if none exists for the given email.
+    // When a User is auto-created a temporary password is returned in the response.
     async addInstructor(req, res) {
-      const { firstName, lastName, email, phone, preferredContactMethod } = req.body;
+      const { firstName, lastName, email, phone, preferredContactMethod, username } = req.body;
 
       const errors = Instructor.validate(req.body);
       if (errors.length)
         return sendError(res, 400, 'Validation Failed', errors.join('; '), BACK);
 
-      // Email must link to an existing User with role instructor or manager
-      const matchingUser = await User.findOne({ email: email.trim() }).lean();
-      if (!matchingUser || !['instructor', 'manager'].includes(matchingUser.role))
-        return sendError(res, 400, 'No Matching User Account', `No instructor or manager User account found with email "${email.trim()}". Create the User account first.`, BACK);
-
       // Prevent duplicate instructor records for the same email
       const existing = await Instructor.findOne({ email: email.trim() }).lean();
       if (existing)
         return sendError(res, 409, 'Instructor Already Exists', `An instructor record already exists for email "${email.trim()}" (ID: ${existing.instructorId})`, BACK);
+
+      // Auto-create a User account if one doesn't already exist for this email
+      let tempPassword = null;
+      let matchingUser = await User.findOne({ email: email.trim() }).lean();
+
+      if (!matchingUser) {
+        // Derive a username: firstname.lastname, lowercase, with collision avoidance
+        const baseUsername = (firstName.trim() + '.' + lastName.trim()).toLowerCase().replace(/[^a-z0-9.]/g, '');
+        const providedUsername = username ? username.trim().toLowerCase() : null;
+        let candidateUsername = providedUsername || baseUsername;
+
+        // Ensure uniqueness
+        let suffix = 2;
+        while (await User.findByUsername(candidateUsername)) {
+          candidateUsername = (providedUsername || baseUsername) + suffix;
+          suffix++;
+        }
+
+        // Generate a temporary password: "Yogi" + 6 random alphanumeric chars
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        tempPassword = 'Yogi' + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+
+        const newUser = new User({
+          username: candidateUsername,
+          password: tempPassword, // pre-save hook hashes it
+          role: 'instructor',
+          email: email.trim()
+          // lastLogin left null (default) — signals first-login password change required
+        });
+        await newUser.save();
+        matchingUser = newUser;
+      } else if (!['instructor', 'manager'].includes(matchingUser.role)) {
+        return sendError(res, 400, 'Invalid User Account', `A User account exists for email "${email.trim()}" but has role "${matchingUser.role}". Must be instructor or manager.`, BACK);
+      }
 
       const instructorId = await generateId('instructor');
       const doc = new Instructor({
@@ -52,7 +82,9 @@ module.exports = createRouter({
         isActive: true
       });
       await doc.save();
-      sendSuccess(res, 'Instructor Added Successfully', Instructor.serialize(doc.toObject()), BACK);
+
+      const responseData = Object.assign({ tempPassword }, Instructor.serialize(doc.toObject()));
+      sendSuccess(res, 'Instructor Added Successfully', responseData, BACK);
     },
 
     // Retrieves a single instructor by instructorId
@@ -94,7 +126,7 @@ module.exports = createRouter({
       if (email && email.trim() !== doc.email) {
         const matchingUser = await User.findOne({ email: email.trim() }).lean();
         if (!matchingUser || !['instructor', 'manager'].includes(matchingUser.role))
-          return sendError(res, 400, 'No Matching User Account', `No instructor or manager User account found with email "${email.trim()}"`, BACK);
+          return sendError(res, 400, 'No Matching User Account', `No instructor or manager User account found with email "${email.trim()}". A matching User account is required when changing email.`, BACK);
 
         const emailTaken = await Instructor.findOne({ email: email.trim(), instructorId: { $ne: instructorId.trim() } }).lean();
         if (emailTaken)
