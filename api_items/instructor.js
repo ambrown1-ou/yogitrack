@@ -56,12 +56,16 @@ module.exports = createRouter({
         }
       }
 
-      // Auto-create a User account if one doesn't already exist for this email
+      // Auto-create a User account if one doesn't already exist for this email.
+      // Case-insensitive lookup so casing differences don't accidentally create duplicates.
       let tempPassword = null;
       let tempUsername = null;
-      let matchingUser = await User.findOne({ email: email.trim() }).lean();
+      let linkedToExisting = false;
+      const emailSafe = email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      let matchingUser = await User.findOne({ email: new RegExp(`^${emailSafe}$`, 'i') }).lean();
 
       if (!matchingUser) {
+        // No existing account — create one with a temporary password
         // Derive a username: firstname.lastname, lowercase, with collision avoidance
         const baseUsername = (firstName.trim() + '.' + lastName.trim()).toLowerCase().replace(/[^a-z0-9.]/g, '');
         const providedUsername = username ? username.trim().toLowerCase() : null;
@@ -88,8 +92,11 @@ module.exports = createRouter({
         await newUser.save();
         matchingUser = newUser;
         tempUsername = candidateUsername;
-      } else if (!['instructor', 'manager'].includes(matchingUser.role)) {
-        return sendError(res, 400, 'Invalid User Account', `A User account exists for email "${email.trim()}" but has role "${matchingUser.role}". Must be instructor or manager.`, BACK);
+      } else if (matchingUser.role === 'manager' || matchingUser.role === 'instructor') {
+        // Existing manager or instructor account — reuse it, no new password needed
+        linkedToExisting = true;
+      } else {
+        return sendError(res, 400, 'Invalid User Account', `A User account exists for email "${email.trim()}" but has role "${matchingUser.role}". Only manager or instructor accounts can be linked to an instructor record.`, BACK);
       }
 
       const instructorId = await generateId('instructor');
@@ -104,8 +111,11 @@ module.exports = createRouter({
       });
       await doc.save();
 
-      const responseData = Object.assign({ tempUsername, tempPassword }, Instructor.serialize(doc.toObject()));
-      sendSuccess(res, 'Instructor Added Successfully', responseData, BACK);
+      const responseData = Object.assign({ tempUsername, tempPassword, linkedToExisting }, Instructor.serialize(doc.toObject()));
+      const msg = linkedToExisting
+        ? 'Instructor Added — Linked to Existing Account'
+        : 'Instructor Added Successfully';
+      sendSuccess(res, msg, responseData, BACK);
     },
 
     // Retrieves a single instructor by instructorId

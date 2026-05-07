@@ -95,8 +95,13 @@ function InstructorAdmin() {
         var created = results[0];
         var tu = created && created.tempUsername ? created.tempUsername : null;
         var tp = created && created.tempPassword ? created.tempPassword : null;
+        var linked = created && created.linkedToExisting;
         setTempCredentials(tu || tp ? { username: tu, password: tp } : null);
-        setFormSuccess(data.firstName + ' ' + data.lastName + ' added as instructor.');
+        if (linked) {
+          setFormSuccess(data.firstName + ' ' + data.lastName + ' added as instructor. Their existing account was linked — no new login was created. They will see a role selector on their next login.');
+        } else {
+          setFormSuccess(data.firstName + ' ' + data.lastName + ' added as instructor.');
+        }
         setFormData({ firstName: '', lastName: '', email: '', username: '', phone: '', preferredContactMethod: 'email' });
         setShowAddForm(false);
       }

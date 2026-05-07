@@ -42,14 +42,15 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
         if (updates.defaultInstructorId !== undefined) {
           var today = YogiUtils.todayStr();
           var futureInstances = await SchedulingAPI.getClassInstances(series.classId, today, series.endDate);
-          var oldInstructorId = series.defaultInstructorId;
+          // Normalize: null/undefined/''/null defaultInstructorId is stored as 'UNASSIGNED' on instances
+          var oldInstructorId = series.defaultInstructorId || 'UNASSIGNED';
           var newInstructorId = updates.defaultInstructorId;
 
           var propagatePromises = futureInstances
             .filter(function (inst) {
               if (inst.status !== 'scheduled') return false;
               if (overwriteInstructor) return true;
-              return inst.instructorId === oldInstructorId;
+              return (inst.instructorId || 'UNASSIGNED') === oldInstructorId;
             })
             .map(function (inst) {
               return SchedulingAPI.updateClassInstance(inst.instanceId, { instructorId: newInstructorId || 'UNASSIGNED' });
