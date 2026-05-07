@@ -19,6 +19,7 @@ function AppRouter({ user, onLogout, onSwitchRole }) {
   } else if (user.role === 'instructor') {
     tabs = [
       { id: 'attendance', label: 'Attendance' },
+      { id: 'schedule', label: 'Schedule' },
       { id: 'calendar', label: 'Calendar' }
     ];
     defaultTab = 'attendance';

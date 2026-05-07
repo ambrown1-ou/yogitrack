@@ -39,7 +39,7 @@ function InstanceForm({ instance, seriesList, instructors, onSave, onCancel }) {
 
       <div className="info-box" style={{ marginBottom: '16px' }}>
         <strong>{series ? series.className : instance.classId}</strong><br />
-        {YogiUtils.formatDate(instance.instanceDate)} &mdash; originally {YogiUtils.formatTime(instance.startTime)} ({instance.duration})
+        {YogiUtils.formatDate(instance.instanceDate)} - originally {YogiUtils.formatTime(instance.startTime)} ({instance.duration})
       </div>
 
       {error && <p style={{ color: 'red', marginBottom: '16px' }}>{error}</p>}
@@ -48,7 +48,7 @@ function InstanceForm({ instance, seriesList, instructors, onSave, onCancel }) {
         <div className="form-group">
           <label>Instructor</label>
           <select value={instructorId} onChange={function (e) { setInstructorId(e.target.value); }}>
-            <option value="">— Unassigned —</option>
+            <option value="">-- Unassigned --</option>
             {instructors.map(function (i) {
               return (
                 <option key={i.instructorId} value={i.instructorId}>

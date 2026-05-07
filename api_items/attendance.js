@@ -38,6 +38,11 @@ module.exports = createRouter({
       if (!customer)
         return sendError(res, 404, 'Customer Not Found', `No customer found with ID: ${customerId}`, BACK);
 
+      // Prevent recording the same customer twice for the same instance
+      const duplicate = await Attendance.findOne({ instanceId: instanceId.trim(), customerId: customerId.trim() }).lean();
+      if (duplicate)
+        return sendError(res, 409, 'Duplicate Attendance', `Customer ${customerId.trim()} already has an attendance record for instance ${instanceId.trim()} (attendanceId: ${duplicate.attendanceId})`, BACK);
+
       const beforeBalance = customer.classBalance;
       let packageEntry = null;
 

@@ -1,4 +1,4 @@
-const { createRouter, sendError, sendSuccess } = require('../api_helpers/routeFactory');
+const { createRouter, sendError, sendSuccess, sendConfirmation } = require('../api_helpers/routeFactory');
 const Instructor = require('../api_models/Instructor');
 const User = require('../api_models/User');
 const { ClassInstance } = require('../api_models/Class');
@@ -11,13 +11,13 @@ module.exports = createRouter({
   basePath: BACK,
   methods: {
     addInstructor: {
-      fields: ['firstName', 'lastName', 'email', 'phone', 'preferredContactMethod', 'username'],
+      fields: ['firstName', 'lastName', 'email', 'phone', 'preferredContactMethod', 'username', 'confirmDuplicate'],
       required: ['firstName', 'lastName', 'email']
     },
     getInstructor: { fields: ['instructorId'], required: ['instructorId'] },
     getAllInstructors: { fields: [] },
     updateInstructor: {
-      fields: ['instructorId', 'firstName', 'lastName', 'email', 'phone', 'preferredContactMethod'],
+      fields: ['instructorId', 'firstName', 'lastName', 'email', 'phone', 'preferredContactMethod', 'confirmDuplicate'],
       required: ['instructorId']
     },
     deleteInstructor: { fields: ['instructorId'], required: ['instructorId'] },
@@ -26,7 +26,7 @@ module.exports = createRouter({
     // Creates a new instructor; auto-creates a User account if none exists for the given email.
     // When a User is auto-created a temporary password is returned in the response.
     async addInstructor(req, res) {
-      const { firstName, lastName, email, phone, preferredContactMethod, username } = req.body;
+      const { firstName, lastName, email, phone, preferredContactMethod, username, confirmDuplicate } = req.body;
 
       const errors = Instructor.validate(req.body);
       if (errors.length)
@@ -37,8 +37,28 @@ module.exports = createRouter({
       if (existing)
         return sendError(res, 409, 'Instructor Already Exists', `An instructor record already exists for email "${email.trim()}" (ID: ${existing.instructorId})`, BACK);
 
+      // Duplicate name warning - allow proceed with confirmation
+      if (confirmDuplicate !== 'true') {
+        const sameName = await Instructor.findOne({
+          firstName: new RegExp(`^${firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          lastName: new RegExp(`^${lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+        }).lean();
+        if (sameName) {
+          return sendConfirmation(res, {
+            message: 'Duplicate Instructor Name Found',
+            details: `An instructor named "${firstName.trim()} ${lastName.trim()}" already exists (ID: ${sameName.instructorId}). Do you want to add another instructor with the same name?`,
+            action: `${BACK}/addInstructor`,
+            formData: req.body,
+            extraFields: { confirmDuplicate: 'true' },
+            confirmText: 'Yes, Add Instructor',
+            backUrl: BACK
+          });
+        }
+      }
+
       // Auto-create a User account if one doesn't already exist for this email
       let tempPassword = null;
+      let tempUsername = null;
       let matchingUser = await User.findOne({ email: email.trim() }).lean();
 
       if (!matchingUser) {
@@ -67,6 +87,7 @@ module.exports = createRouter({
         });
         await newUser.save();
         matchingUser = newUser;
+        tempUsername = candidateUsername;
       } else if (!['instructor', 'manager'].includes(matchingUser.role)) {
         return sendError(res, 400, 'Invalid User Account', `A User account exists for email "${email.trim()}" but has role "${matchingUser.role}". Must be instructor or manager.`, BACK);
       }
@@ -83,7 +104,7 @@ module.exports = createRouter({
       });
       await doc.save();
 
-      const responseData = Object.assign({ tempPassword }, Instructor.serialize(doc.toObject()));
+      const responseData = Object.assign({ tempUsername, tempPassword }, Instructor.serialize(doc.toObject()));
       sendSuccess(res, 'Instructor Added Successfully', responseData, BACK);
     },
 
@@ -104,7 +125,7 @@ module.exports = createRouter({
 
     // Updates editable fields on an instructor record; re-validates User link if email changes
     async updateInstructor(req, res) {
-      const { instructorId, firstName, lastName, email, phone, preferredContactMethod } = req.body;
+      const { instructorId, firstName, lastName, email, phone, preferredContactMethod, confirmDuplicate } = req.body;
 
       const doc = await Instructor.findOne({ instructorId: instructorId.trim() });
       if (!doc)
@@ -133,6 +154,29 @@ module.exports = createRouter({
           return sendError(res, 409, 'Email Already In Use', `Another instructor record already uses email "${email.trim()}"`, BACK);
 
         doc.email = email.trim();
+      }
+
+      // Name duplicate warning when name is being changed
+      const newFirst = firstName ? firstName.trim() : doc.firstName;
+      const newLast = lastName ? lastName.trim() : doc.lastName;
+      const nameChanging = (firstName && firstName.trim() !== doc.firstName) || (lastName && lastName.trim() !== doc.lastName);
+      if (nameChanging && confirmDuplicate !== 'true') {
+        const sameName = await Instructor.findOne({
+          firstName: new RegExp(`^${newFirst.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          lastName: new RegExp(`^${newLast.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          instructorId: { $ne: instructorId.trim() }
+        }).lean();
+        if (sameName) {
+          return sendConfirmation(res, {
+            message: 'Duplicate Instructor Name Found',
+            details: `An instructor named "${newFirst} ${newLast}" already exists (ID: ${sameName.instructorId}). Do you want to rename this instructor to the same name?`,
+            action: `${BACK}/updateInstructor`,
+            formData: req.body,
+            extraFields: { confirmDuplicate: 'true' },
+            confirmText: 'Yes, Update Instructor',
+            backUrl: BACK
+          });
+        }
       }
 
       if (firstName) doc.firstName = firstName.trim();

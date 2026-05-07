@@ -124,7 +124,7 @@ function ClassForm({ instructors, onSave, onCancel }) {
               checked={isRecurring}
               onChange={function (e) { handleRecurringToggle(e.target.checked); }}
             />
-            <strong>Recurring</strong> &mdash; repeats on selected days until an end date
+            <strong>Recurring</strong> - repeats on selected days until an end date
           </label>
         </div>
 
@@ -201,7 +201,7 @@ function ClassForm({ instructors, onSave, onCancel }) {
             value={formData.defaultInstructorId}
             onChange={function (e) { handleChange('defaultInstructorId', e.target.value); }}
           >
-            <option value="">— None —</option>
+            <option value="">-- None --</option>
             {instructors.map(function (i) {
               return (
                 <option key={i.instructorId} value={i.instructorId}>

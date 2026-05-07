@@ -72,9 +72,9 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
       <div className="info-box" style={{ marginBottom: '16px' }}>
         <strong>Structural fields (locked)</strong><br />
         <span style={{ fontSize: '0.9rem' }}>
-          Start: {series.startDate} &nbsp;&bull;&nbsp;
-          Days: {series.daysOfWeek.map(function (d) { return d.slice(0, 3); }).join(', ')} &nbsp;&bull;&nbsp;
-          Time: {YogiUtils.formatTime(series.startTime)} &nbsp;&bull;&nbsp;
+          Start: {series.startDate} {' | '}
+          Days: {series.daysOfWeek.map(function (d) { return d.slice(0, 3); }).join(', ')} {' | '}
+          Time: {YogiUtils.formatTime(series.startTime)} {' | '}
           Duration: {series.duration}
         </span>
       </div>
@@ -119,7 +119,7 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
             value={formData.defaultInstructorId}
             onChange={function (e) { handleChange('defaultInstructorId', e.target.value); }}
           >
-            <option value="">— None —</option>
+            <option value="">-- None --</option>
             {instructors.map(function (i) {
               return (
                 <option key={i.instructorId} value={i.instructorId}>

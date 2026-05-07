@@ -91,11 +91,11 @@ function AttendanceForm({ instance, onBack, onComplete }) {
 
       <div className="info-box" style={{ marginBottom: '16px' }}>
         <strong>{instance.className}</strong><br />
-        {YogiUtils.formatDate(instance.instanceDate)} &mdash; {YogiUtils.formatTime(instance.startTime)} ({YogiUtils.formatDuration(instance.duration)})<br />
+        {YogiUtils.formatDate(instance.instanceDate)} - {YogiUtils.formatTime(instance.startTime)} ({YogiUtils.formatDuration(instance.duration)})<br />
         <span>
           Attendance so far: {attendanceCount} / {instance.maxCapacity}
           {isOverCapacity && (
-            <span style={{ color: 'red', marginLeft: '8px' }}>&#9888; Over capacity</span>
+            <span style={{ color: 'red', marginLeft: '8px' }}>(!) Over capacity</span>
           )}
         </span>
       </div>
@@ -140,7 +140,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
             var alreadyAdded = !!attendees.find(function (a) { return a.customerId === c.customerId; });
             return (
               <div key={c.customerId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #ccc' }}>
-                <span>{c.firstName} {c.lastName} &mdash; Balance: {c.classBalance}</span>
+                <span>{c.firstName} {c.lastName} - Balance: {c.classBalance}</span>
                 <button
                   onClick={function () { handleAddCustomer(c); }}
                   className="link-button"

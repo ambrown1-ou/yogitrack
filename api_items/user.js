@@ -36,6 +36,13 @@ module.exports = createRouter({
         return sendError(res, 409, 'User Already Exists', `A user with username "${normalizedUsername}" already exists`, BACK);
       }
 
+      // Reject if email is already in use by another user account
+      if (email && email.trim()) {
+        const emailExists = await User.findOne({ email: email.trim() }).lean();
+        if (emailExists)
+          return sendError(res, 409, 'Email Already In Use', `A user account already exists with email "${email.trim()}"`, BACK);
+      }
+
       // Create and save the new user; password hashed by pre-save hook
       const user = new User({
         username: normalizedUsername,

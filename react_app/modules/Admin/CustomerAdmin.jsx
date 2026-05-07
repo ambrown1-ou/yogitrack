@@ -173,8 +173,8 @@ function CustomerAdmin() {
               return (
                 <tr key={c.customerId}>
                   <td>{c.firstName} {c.lastName}</td>
-                  <td>{c.email || '—'}</td>
-                  <td>{c.phone || '—'}</td>
+                  <td>{c.email || '-'}</td>
+                  <td>{c.phone || '-'}</td>
                   <td>{c.classBalance}</td>
                   <td>{c.isActive ? 'Active' : 'Inactive'}</td>
                 </tr>

@@ -155,12 +155,14 @@ function Scheduling({ user }) {
           {/* ---- Class Series Tab ---- */}
           {activeTab === 'series' && (
             <div>
-              <button
-                onClick={function () { setShowClassForm(true); }}
-                style={{ flex: 'unset', marginBottom: '16px' }}
-              >
-                + New Class Series
-              </button>
+              {user.role !== 'instructor' && (
+                <button
+                  onClick={function () { setShowClassForm(true); }}
+                  style={{ flex: 'unset', marginBottom: '16px' }}
+                >
+                  + New Class Series
+                </button>
+              )}
 
               {seriesList.length === 0 ? (
                 <p>No class series found. Create one to get started.</p>
@@ -186,7 +188,7 @@ function Scheduling({ user }) {
                           <td>{s.daysOfWeek.map(function (d) { return d.slice(0, 3); }).join(', ')}</td>
                           <td>{YogiUtils.formatTime(s.startTime)}</td>
                           <td>{s.duration}</td>
-                          <td>{s.startDate} &ndash; {s.endDate}</td>
+                          <td>{s.startDate} to {s.endDate}</td>
                           <td>
                             <button
                               className="link-button"
@@ -198,20 +200,24 @@ function Scheduling({ user }) {
                             >
                               Instances
                             </button>
-                            {' · '}
-                            <button
-                              className="link-button"
-                              onClick={function () { setEditingSeries(s); setShowSeriesEditForm(true); }}
-                            >
-                              Edit
-                            </button>
-                            {' · '}
-                            <button
-                              className="link-button"
-                              onClick={function () { handleDeactivateSeries(s.classId, s.className); }}
-                            >
-                              Deactivate
-                            </button>
+                            {user.role !== 'instructor' && (
+                              <>
+                                {' | '}
+                                <button
+                                  className="link-button"
+                                  onClick={function () { setEditingSeries(s); setShowSeriesEditForm(true); }}
+                                >
+                                  Edit
+                                </button>
+                                {' | '}
+                                <button
+                                  className="link-button"
+                                  onClick={function () { handleDeactivateSeries(s.classId, s.className); }}
+                                >
+                                  Deactivate
+                                </button>
+                              </>
+                            )}
                           </td>
                         </tr>
                       );
@@ -235,7 +241,7 @@ function Scheduling({ user }) {
                       loadInstances(e.target.value);
                     }}
                   >
-                    <option value="">— Select a class —</option>
+                    <option value="">-- Select a class --</option>
                     {seriesList.map(function (s) {
                       return <option key={s.classId} value={s.classId}>{s.className}</option>;
                     })}
@@ -267,7 +273,7 @@ function Scheduling({ user }) {
                           <td>{getInstructorName(inst.instructorId)}</td>
                           <td>{inst.status}</td>
                           <td>
-                            {inst.status === 'scheduled' && (
+                            {inst.status === 'scheduled' && user.role !== 'instructor' && (
                               <>
                                 <button
                                   className="link-button"
@@ -278,7 +284,7 @@ function Scheduling({ user }) {
                                 >
                                   Edit
                                 </button>
-                                {' · '}
+                                {' | '}
                                 <button
                                   className="link-button"
                                   onClick={function () { handleCancelInstance(inst.instanceId); }}

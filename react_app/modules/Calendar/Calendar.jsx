@@ -127,11 +127,11 @@ function Calendar({ user }) {
     <div className="card">
       {/* Month navigation */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <button onClick={prevMonth} style={{ flex: 'unset' }}>&larr; Prev</button>
+        <button onClick={prevMonth} style={{ flex: 'unset' }}>{'<< Prev'}</button>
         <h2 style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
           {MONTH_NAMES[month]} {year}
         </h2>
-        <button onClick={nextMonth} style={{ flex: 'unset' }}>Next &rarr;</button>
+        <button onClick={nextMonth} style={{ flex: 'unset' }}>{'Next >>'}</button>
       </div>
 
       {isLoading && <p>Loading...</p>}
@@ -169,14 +169,24 @@ function Calendar({ user }) {
                           verticalAlign: 'top',
                           padding: '4px',
                           cursor: day ? 'pointer' : 'default',
-                          background: isSelected ? '#f5f5f5' : 'transparent',
-                          outline: isToday ? '2px solid #000' : 'none',
-                          outlineOffset: '-2px'
+                          background: isToday ? '#fffbcc' : (isSelected ? '#f5f5f5' : 'transparent')
                         }}
                       >
                         {day && (
                           <>
-                            <div style={{ fontWeight: isToday ? '700' : '400', marginBottom: '2px', fontSize: '0.9rem' }}>
+                            <div style={{
+                              display: 'inline-block',
+                              fontWeight: '700',
+                              fontSize: '0.9rem',
+                              marginBottom: '2px',
+                              background: isToday ? '#000' : 'transparent',
+                              color: isToday ? '#fff' : '#000',
+                              borderRadius: '50%',
+                              width: '20px',
+                              height: '20px',
+                              lineHeight: '20px',
+                              textAlign: 'center'
+                            }}>
                               {day}
                             </div>
                             {dayInstances.slice(0, 2).map(function (inst) {

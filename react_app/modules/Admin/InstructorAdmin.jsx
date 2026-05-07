@@ -76,7 +76,7 @@ function InstructorAdmin() {
           {tempPassword && (
             <p style={{ margin: '8px 0 0', fontFamily: 'monospace', fontSize: '1rem' }}>
               Temporary password: <strong>{tempPassword}</strong>
-              <span style={{ marginLeft: '12px', color: '#555', fontSize: '0.85rem' }}>— share this with the instructor; they will be prompted to change it on first login</span>
+              <span style={{ marginLeft: '12px', color: '#555', fontSize: '0.85rem' }}>- share this with the instructor; they will be prompted to change it on first login</span>
             </p>
           )}
         </div>
@@ -95,7 +95,7 @@ function InstructorAdmin() {
         <div style={{ border: '1px solid #000', padding: '16px', marginBottom: '20px' }}>
           <h3 style={{ marginBottom: '8px' }}>New Instructor</h3>
           <p style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>
-            A login account will be created automatically. Leave Username blank to auto-generate it from the instructor&apos;s name.
+            A login account will be created automatically. Leave Username blank to auto-generate it from the instructor's name.
           </p>
           {formError && <p style={{ color: 'red', marginBottom: '12px' }}>{formError}</p>}
           <form onSubmit={handleSubmit}>
@@ -185,7 +185,7 @@ function InstructorAdmin() {
                 <tr key={i.instructorId}>
                   <td>{i.firstName} {i.lastName}</td>
                   <td>{i.email}</td>
-                  <td>{i.phone || '—'}</td>
+                  <td>{i.phone || '-'}</td>
                   <td>{i.preferredContactMethod}</td>
                   <td>{i.isActive ? 'Active' : 'Inactive'}</td>
                 </tr>
