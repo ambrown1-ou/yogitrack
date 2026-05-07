@@ -8,6 +8,8 @@ function Attendance({ user }) {
   var [isLoading, setIsLoading] = React.useState(true);
   var [error, setError] = React.useState('');
   var [selectedInstance, setSelectedInstance] = React.useState(null);
+  var [pageSize, setPageSize] = React.useState(25);
+  var [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(function () {
     loadInstructorAndClasses();
@@ -50,6 +52,8 @@ function Attendance({ user }) {
     );
   }
 
+  var pagedClasses = YogiUtils.paginateControls(classes, pageSize, currentPage, setPageSize, setCurrentPage);
+
   return (
     <div className="card">
       <h2>Attendance</h2>
@@ -64,6 +68,7 @@ function Attendance({ user }) {
         <p>No upcoming classes scheduled for you in the next 30 days.</p>
       )}
 
+      {!isLoading && !error && classes.length > 0 && pagedClasses.controls}
       {!isLoading && !error && classes.length > 0 && (
         <table>
           <thead>
@@ -77,7 +82,7 @@ function Attendance({ user }) {
             </tr>
           </thead>
           <tbody>
-            {classes.map(function (inst) {
+            {pagedClasses.visibleItems.map(function (inst) {
               return (
                 <tr key={inst.instanceId}>
                   <td>{inst.className}</td>

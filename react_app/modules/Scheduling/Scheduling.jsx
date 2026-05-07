@@ -16,6 +16,10 @@ function Scheduling({ user }) {
   var [editingInstance, setEditingInstance] = React.useState(null);
   var [showSeriesEditForm, setShowSeriesEditForm] = React.useState(false);
   var [editingSeries, setEditingSeries] = React.useState(null);
+  var [seriesPageSize, setSeriesPageSize] = React.useState(25);
+  var [seriesPage, setSeriesPage] = React.useState(1);
+  var [instPageSize, setInstPageSize] = React.useState(25);
+  var [instPage, setInstPage] = React.useState(1);
 
   React.useEffect(function () {
     loadData();
@@ -40,6 +44,7 @@ function Scheduling({ user }) {
 
   async function loadInstances(classId) {
     if (!classId) { setInstances([]); return; }
+    setInstPage(1);
     var today = YogiUtils.todayStr();
     var endDate = YogiUtils.futureDateStr(90);
     try {
@@ -120,6 +125,9 @@ function Scheduling({ user }) {
     );
   }
 
+  var pagedSeries = YogiUtils.paginateControls(seriesList, seriesPageSize, seriesPage, setSeriesPageSize, setSeriesPage);
+  var pagedInstances = YogiUtils.paginateControls(instances, instPageSize, instPage, setInstPageSize, setInstPage);
+
   // ---- Main scheduling view ----
   return (
     <div className="card">
@@ -164,6 +172,7 @@ function Scheduling({ user }) {
                 </button>
               )}
 
+              {pagedSeries.controls}
               {seriesList.length === 0 ? (
                 <p>No class series found. Create one to get started.</p>
               ) : (
@@ -180,7 +189,7 @@ function Scheduling({ user }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {seriesList.map(function (s) {
+                    {pagedSeries.visibleItems.map(function (s) {
                       return (
                         <tr key={s.classId}>
                           <td>{s.className}</td>
@@ -251,6 +260,7 @@ function Scheduling({ user }) {
 
               {!filterClassId && <p>Select a class series to view its upcoming instances.</p>}
               {filterClassId && instances.length === 0 && <p>No upcoming instances found for this class.</p>}
+              {instances.length > 0 && pagedInstances.controls}
               {instances.length > 0 && (
                 <table>
                   <thead>
@@ -264,7 +274,7 @@ function Scheduling({ user }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {instances.map(function (inst) {
+                    {pagedInstances.visibleItems.map(function (inst) {
                       return (
                         <tr key={inst.instanceId}>
                           <td>{YogiUtils.formatDate(inst.instanceDate)}</td>

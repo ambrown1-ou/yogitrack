@@ -20,6 +20,8 @@ function CustomerAdmin() {
   var [formError, setFormError] = React.useState('');
   var [formSuccess, setFormSuccess] = React.useState('');
   var [pendingConfirm, setPendingConfirm] = React.useState(null);
+  var [pageSize, setPageSize] = React.useState(25);
+  var [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(function () {
     loadCustomers();
@@ -118,6 +120,7 @@ function CustomerAdmin() {
     }
   }
 
+  var pagedCustomers = YogiUtils.paginateControls(customers, pageSize, currentPage, setPageSize, setCurrentPage);
   var showForm = showAddForm || !!editingCustomer;
   var formTitle = editingCustomer ? 'Edit Customer' : 'New Customer';
 
@@ -231,6 +234,7 @@ function CustomerAdmin() {
 
       {!isLoading && customers.length === 0 && !error && <p>No customer records found.</p>}
 
+      {!isLoading && customers.length > 0 && pagedCustomers.controls}
       {!isLoading && customers.length > 0 && (
         <table>
           <thead>
@@ -244,7 +248,7 @@ function CustomerAdmin() {
             </tr>
           </thead>
           <tbody>
-            {customers.map(function (c) {
+            {pagedCustomers.visibleItems.map(function (c) {
               return (
                 <tr key={c.customerId} style={{ background: editingCustomer && editingCustomer.customerId === c.customerId ? '#f5f5f5' : '' }}>
                   <td>{c.firstName} {c.lastName}</td>

@@ -57,3 +57,45 @@ var YogiUtils = {
   }
 
 };
+
+// Returns { visibleItems, controls } for a per-page selector with optional Prev/Next navigation.
+// pageSize is a number (25, 50, 100) or the string 'ALL'.
+YogiUtils.paginateControls = function (items, pageSize, currentPage, setPageSize, setCurrentPage) {
+  var total = items.length;
+  var totalPages = pageSize === 'ALL' ? 1 : Math.ceil(total / pageSize);
+  var visibleItems = pageSize === 'ALL' ? items : items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  var start = pageSize === 'ALL' ? 1 : (currentPage - 1) * pageSize + 1;
+  var end = pageSize === 'ALL' ? total : Math.min(currentPage * pageSize, total);
+
+  var controls = total === 0 ? null : (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', fontSize: '0.9rem', flexWrap: 'wrap' }}>
+      <span>{'Showing ' + start + '\u2013' + end + ' of ' + total}</span>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'normal', margin: 0 }}>
+        {'Show: '}
+        <select
+          value={pageSize}
+          onChange={function (e) {
+            var val = e.target.value === 'ALL' ? 'ALL' : Number(e.target.value);
+            setPageSize(val);
+            setCurrentPage(1);
+          }}
+          style={{ width: 'auto' }}
+        >
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+          <option value="ALL">All</option>
+        </select>
+      </label>
+      {totalPages > 1 && (
+        <>
+          <button className="link-button" disabled={currentPage <= 1} onClick={function () { setCurrentPage(currentPage - 1); }}>{'< Prev'}</button>
+          <span>{'Page ' + currentPage + ' of ' + totalPages}</span>
+          <button className="link-button" disabled={currentPage >= totalPages} onClick={function () { setCurrentPage(currentPage + 1); }}>{'Next >'}</button>
+        </>
+      )}
+    </div>
+  );
+
+  return { visibleItems: visibleItems, controls: controls };
+};

@@ -20,6 +20,8 @@ function InstructorAdmin() {
   var [formSuccess, setFormSuccess] = React.useState('');
   var [tempCredentials, setTempCredentials] = React.useState(null);
   var [pendingConfirm, setPendingConfirm] = React.useState(null);
+  var [pageSize, setPageSize] = React.useState(25);
+  var [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(function () {
     loadInstructors();
@@ -122,6 +124,7 @@ function InstructorAdmin() {
     }
   }
 
+  var pagedInstructors = YogiUtils.paginateControls(instructors, pageSize, currentPage, setPageSize, setCurrentPage);
   var showForm = showAddForm || !!editingInstructor;
   var formTitle = editingInstructor ? 'Edit Instructor' : 'New Instructor';
 
@@ -251,6 +254,7 @@ function InstructorAdmin() {
 
       {!isLoading && instructors.length === 0 && !error && <p>No instructor records found.</p>}
 
+      {!isLoading && instructors.length > 0 && pagedInstructors.controls}
       {!isLoading && instructors.length > 0 && (
         <table>
           <thead>
@@ -264,7 +268,7 @@ function InstructorAdmin() {
             </tr>
           </thead>
           <tbody>
-            {instructors.map(function (i) {
+            {pagedInstructors.visibleItems.map(function (i) {
               return (
                 <tr key={i.instructorId} style={{ background: editingInstructor && editingInstructor.instructorId === i.instructorId ? '#f5f5f5' : '' }}>
                   <td>{i.firstName} {i.lastName}</td>
