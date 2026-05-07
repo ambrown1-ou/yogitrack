@@ -13,8 +13,7 @@ function AppRouter({ user, onLogout, onSwitchRole }) {
       { id: 'schedule', label: 'Schedule' },
       { id: 'calendar', label: 'Calendar' },
       { id: 'customers', label: 'Customers' },
-      { id: 'instructors', label: 'Instructors' },
-      { id: 'users', label: 'Users' }
+      { id: 'instructors', label: 'Instructors' }
     ];
     defaultTab = 'schedule';
   } else if (user.role === 'instructor') {
@@ -73,7 +72,6 @@ function AppRouter({ user, onLogout, onSwitchRole }) {
       {activeTab === 'calendar' && <Calendar user={user} />}
       {activeTab === 'customers' && <CustomerAdmin />}
       {activeTab === 'instructors' && <InstructorAdmin />}
-      {activeTab === 'users' && <UsersAdmin />}
     </div>
   );
 }
