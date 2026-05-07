@@ -16,11 +16,16 @@ var apiPost = async function (path, body) {
   });
   var data = await response.json();
   if (!data.success) {
-    var msg = (data.results && data.results[0])
-      ? (data.results[0].error || data.results[0].details || JSON.stringify(data.results[0]))
+    var result = data.results && data.results[0];
+    var msg = result
+      ? (result.error || result.details || JSON.stringify(result))
       : 'Request failed';
     var err = new Error(msg);
     err.status = response.status;
+    if (data.resultsType === 'confirmation') {
+      err.isConfirmation = true;
+      err.confirmText = result && result.confirmText ? result.confirmText : 'Confirm';
+    }
     throw err;
   }
   return data.results;
@@ -172,6 +177,16 @@ var SchedulingAPI = {
   // Add a new instructor.
   addInstructor: async function (data) {
     return await apiPost('/api/instructor/addInstructor', data);
+  },
+
+  // Update editable fields on an instructor record.
+  updateInstructor: async function (instructorId, data) {
+    return await apiPost('/api/instructor/updateInstructor', Object.assign({ instructorId: instructorId }, data));
+  },
+
+  // Delete (or deactivate) an instructor.
+  deleteInstructor: async function (instructorId) {
+    return await apiPost('/api/instructor/deleteInstructor', { instructorId: instructorId });
   }
 
 };
@@ -258,6 +273,16 @@ var CustomerAPI = {
   getCustomerById: async function (customerId) {
     var results = await apiPost('/api/customer/getCustomerById', { customerId: customerId });
     return results[0];
+  },
+
+  // Update editable fields on a customer record.
+  updateCustomer: async function (customerId, data) {
+    return await apiPost('/api/customer/updateCustomer', Object.assign({ customerId: customerId }, data));
+  },
+
+  // Delete (or deactivate) a customer.
+  deleteCustomer: async function (customerId) {
+    return await apiPost('/api/customer/deleteCustomer', { customerId: customerId });
   }
 
 };

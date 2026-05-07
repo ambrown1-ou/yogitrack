@@ -1,7 +1,7 @@
 const { createRouter, sendError, sendSuccess } = require('../api_helpers/routeFactory');
 const { ClassSeries, ClassInstance, DURATION_MINUTES, DAYS_OF_WEEK } = require('../api_models/Class');
 const Instructor = require('../api_models/Instructor');
-const { generateId } = require('../api_helpers/idGenerator');
+const { generateId, generateIds } = require('../api_helpers/idGenerator');
 
 const BACK = '/api/class';
 
@@ -66,7 +66,7 @@ module.exports = createRouter({
     getClassSeries: { fields: ['classId'], required: ['classId'] },
     getAllClassSeries: { fields: [] },
     updateClassSeries: {
-      fields: ['classId', 'className', 'classType', 'maxCapacity', 'payRate', 'defaultInstructorId'],
+      fields: ['classId', 'className', 'classType', 'maxCapacity', 'payRate', 'defaultInstructorId', 'endDate'],
       required: ['classId']
     },
     deleteClassSeries: { fields: ['classId'], required: ['classId'] },
@@ -107,15 +107,22 @@ module.exports = createRouter({
       if (instanceDates.length === 0)
         return sendError(res, 400, 'No Instances Generated', 'The selected days of week produce no dates within the start/end range', BACK);
 
-      // Check studio conflicts for every date before creating anything
-      const allConflicts = [];
-      for (const date of instanceDates) {
-        const conflicts = await checkStudioConflict(date, startTime, duration);
-        allConflicts.push(...conflicts);
-      }
-      if (allConflicts.length > 0) {
+      // Single query for all existing instances in the date range, then check conflicts in memory
+      const newStartMin = timeToMinutes(startTime);
+      const newEndMin = newStartMin + DURATION_MINUTES[duration];
+      const existingInRange = await ClassInstance.find({
+        instanceDate: { $in: instanceDates },
+        status: { $ne: 'cancelled' }
+      }).lean();
+      const conflictingExisting = existingInRange.filter(inst => {
+        const existStart = timeToMinutes(inst.startTime);
+        const existEnd = existStart + DURATION_MINUTES[inst.duration];
+        return newStartMin < existEnd && newEndMin > existStart;
+      });
+      if (conflictingExisting.length > 0) {
         return sendError(res, 409, 'Studio Conflict Detected',
-          `The proposed schedule overlaps existing classes on ${allConflicts.length} occurrence(s): ${allConflicts.map(c => `${c.instanceDate} ${c.startTime} (${c.duration})`).join('; ')}`,
+          `The proposed schedule overlaps existing classes on ${conflictingExisting.length} occurrence(s): ` +
+          conflictingExisting.map(c => `${c.instanceDate.toISOString().split('T')[0]} ${c.startTime} (${c.duration})`).join('; '),
           BACK);
       }
 
@@ -136,22 +143,20 @@ module.exports = createRouter({
       });
       await series.save();
 
-      // Generate all instances; instructorId is required — use default or placeholder
-      const instances = [];
-      for (const date of instanceDates) {
-        const instanceId = await generateId('instance');
-        const inst = new ClassInstance({
-          instanceId,
-          classId,
-          instanceDate: date,
-          startTime,
-          duration,
-          instructorId: defaultInstructorId ? defaultInstructorId.trim() : 'UNASSIGNED',
-          status: 'scheduled'
-        });
-        await inst.save();
-        instances.push(ClassInstance.serialize(inst.toObject()));
-      }
+      // Reserve all instance IDs in one atomic DB call, then bulk-insert
+      const instanceIds = await generateIds('instance', instanceDates.length);
+      const instructorId = defaultInstructorId ? defaultInstructorId.trim() : 'UNASSIGNED';
+      const instanceDocs = instanceDates.map((date, i) => ({
+        instanceId: instanceIds[i],
+        classId,
+        instanceDate: date,
+        startTime,
+        duration,
+        instructorId,
+        status: 'scheduled'
+      }));
+      await ClassInstance.insertMany(instanceDocs);
+      const instances = instanceDocs.map(d => ClassInstance.serialize(d));
 
       sendSuccess(res, `Class Series Created with ${instances.length} Instance(s)`, {
         series: ClassSeries.serialize(series.toObject()),
@@ -183,7 +188,7 @@ module.exports = createRouter({
 
     // Updates series metadata only — does not modify existing instances
     async updateClassSeries(req, res) {
-      const { classId, className, classType, maxCapacity, payRate, defaultInstructorId } = req.body;
+      const { classId, className, classType, maxCapacity, payRate, defaultInstructorId, endDate } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() });
       if (!series)
@@ -214,6 +219,18 @@ module.exports = createRouter({
             return sendError(res, 400, 'Instructor Not Found', `No active instructor found with ID: ${defaultInstructorId}`, BACK);
         }
         series.defaultInstructorId = defaultInstructorId ? defaultInstructorId.trim() : null;
+      }
+      if (endDate !== undefined) {
+        const endD = new Date(endDate + 'T00:00:00Z');
+        if (isNaN(endD.getTime()))
+          return sendError(res, 400, 'Validation Failed', 'End date must be a valid date (YYYY-MM-DD)', BACK);
+        const twoYearsFromNow = new Date();
+        twoYearsFromNow.setUTCFullYear(twoYearsFromNow.getUTCFullYear() + 2);
+        if (endD > twoYearsFromNow)
+          return sendError(res, 400, 'Validation Failed', 'End date cannot be more than 2 years in the future', BACK);
+        if (endD <= series.startDate)
+          return sendError(res, 400, 'Validation Failed', 'End date must be after the series start date', BACK);
+        series.endDate = endD;
       }
 
       await series.save();

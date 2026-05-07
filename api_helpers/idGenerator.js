@@ -54,6 +54,27 @@ async function generateId(entityType) {
   return config.prefix + formatNumber(counter.seq);
 }
 
+// Reserves `count` IDs in one atomic operation; returns an array of IDs
+async function generateIds(entityType, count) {
+  const config = ENTITY_CONFIG[entityType];
+  if (!config) throw new Error(`Unknown entity type: ${entityType}`);
+  if (count < 1) return [];
+
+  const counter = await Counter.findOneAndUpdate(
+    { _id: entityType },
+    { $inc: { seq: count } },
+    { upsert: true, returnDocument: 'after' }
+  );
+
+  const lastSeq = counter.seq;
+  const firstSeq = lastSeq - count + 1;
+  const ids = [];
+  for (let i = firstSeq; i <= lastSeq; i++) {
+    ids.push(config.prefix + formatNumber(i));
+  }
+  return ids;
+}
+
 // Syncs counters with existing data (call once on startup)
 async function initializeCounters() {
   for (const [entityType, { model, field }] of Object.entries(ENTITY_CONFIG)) {
@@ -77,6 +98,7 @@ async function initializeCounters() {
 
 module.exports = {
   generateId,
+  generateIds,
   initializeCounters,
   extractNumber,
   formatNumber

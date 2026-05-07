@@ -88,6 +88,8 @@ function ClassForm({ instructors, onSave, onCancel }) {
     }
   }
 
+  var _maxDate = (function () { var d = new Date(); d.setFullYear(d.getFullYear() + 2); return d.toISOString().split('T')[0]; })();
+
   return (
     <div className="card">
       <h2>New Class</h2>
@@ -134,6 +136,7 @@ function ClassForm({ instructors, onSave, onCancel }) {
             <input
               type="date"
               value={formData.startDate}
+              min={YogiUtils.todayStr()}
               onChange={function (e) { handleChange('startDate', e.target.value); }}
               required
             />
@@ -144,6 +147,8 @@ function ClassForm({ instructors, onSave, onCancel }) {
               <input
                 type="date"
                 value={formData.endDate}
+                min={formData.startDate || YogiUtils.todayStr()}
+                max={_maxDate}
                 onChange={function (e) { handleChange('endDate', e.target.value); }}
                 required
               />

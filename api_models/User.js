@@ -60,7 +60,7 @@ userSchema.statics.validate = function(data) {
 userSchema.statics.validateLogin = function(data) {
   const errors = [];
   if (!data.username || !data.password)
-    errors.push('Username and password are required');
+    errors.push('Username or email, and password are required');
   return errors;
 };
 
@@ -79,7 +79,12 @@ userSchema.statics.findByUsername = function(username) {
 // Returns the authenticated user or null.
 userSchema.statics.authenticate = async function(username, password) {
   const safe = String(username).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const user = await this.findOne({ username: new RegExp(`^${safe}$`, 'i') });
+  const user = await this.findOne({
+    $or: [
+      { username: new RegExp(`^${safe}$`, 'i') },
+      { email: new RegExp(`^${safe}$`, 'i') }
+    ]
+  });
   if (!user) return null;
   const valid = await user.verifyPassword(password);
   if (!valid) return null;

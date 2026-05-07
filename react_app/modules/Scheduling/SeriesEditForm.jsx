@@ -13,6 +13,7 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
   });
   var [isSubmitting, setIsSubmitting] = React.useState(false);
   var [error, setError] = React.useState('');
+  var [overwriteInstructor, setOverwriteInstructor] = React.useState(false);
 
   function handleChange(field, value) {
     setFormData(function (prev) {
@@ -46,7 +47,9 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
 
           var propagatePromises = futureInstances
             .filter(function (inst) {
-              return inst.status === 'scheduled' && inst.instructorId === oldInstructorId;
+              if (inst.status !== 'scheduled') return false;
+              if (overwriteInstructor) return true;
+              return inst.instructorId === oldInstructorId;
             })
             .map(function (inst) {
               return SchedulingAPI.updateClassInstance(inst.instanceId, { instructorId: newInstructorId || 'UNASSIGNED' });
@@ -108,6 +111,8 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
           <input
             type="date"
             value={formData.endDate}
+            min={series.startDate}
+            max={(function () { var d = new Date(); d.setFullYear(d.getFullYear() + 2); return d.toISOString().split('T')[0]; })()}
             onChange={function (e) { handleChange('endDate', e.target.value); }}
             required
           />
@@ -129,9 +134,21 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
             })}
           </select>
           {formData.defaultInstructorId !== series.defaultInstructorId && (
-            <small style={{ display: 'block', marginTop: '4px', color: '#555' }}>
-              Future scheduled instances still assigned to the previous instructor will be updated automatically.
-            </small>
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 'normal', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  style={{ width: 'auto', marginTop: '2px' }}
+                  checked={overwriteInstructor}
+                  onChange={function (e) { setOverwriteInstructor(e.target.checked); }}
+                />
+                <span>
+                  {overwriteInstructor
+                    ? 'All future scheduled instances will be reassigned to the new default instructor.'
+                    : 'Only instances still using the previous default instructor will be updated. Check to overwrite all.'}
+                </span>
+              </label>
+            </div>
           )}
         </div>
 
