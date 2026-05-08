@@ -7,16 +7,33 @@ function AttendanceForm({ instance, onBack, onComplete }) {
   var [searchResults, setSearchResults] = React.useState([]);
   var [attendees, setAttendees] = React.useState([]);
   var [attendanceCount, setAttendanceCount] = React.useState(0);
+  var [existingAttendance, setExistingAttendance] = React.useState([]);
+  var [isLoadingExistingAttendance, setIsLoadingExistingAttendance] = React.useState(false);
+  var [existingAttendanceError, setExistingAttendanceError] = React.useState('');
   var [isSearching, setIsSearching] = React.useState(false);
   var [isSubmitting, setIsSubmitting] = React.useState(false);
   var [searchError, setSearchError] = React.useState('');
   var [submitError, setSubmitError] = React.useState('');
   var [submitSuccess, setSubmitSuccess] = React.useState('');
 
+  async function loadExistingAttendance() {
+    setIsLoadingExistingAttendance(true);
+    setExistingAttendanceError('');
+    try {
+      var roster = await AttendanceAPI.getClassAttendanceList(instance.instanceId);
+      setExistingAttendance(roster);
+      setAttendanceCount(roster.length);
+    } catch (err) {
+      setExistingAttendance([]);
+      setAttendanceCount(0);
+      setExistingAttendanceError(err.message);
+    } finally {
+      setIsLoadingExistingAttendance(false);
+    }
+  }
+
   React.useEffect(function () {
-    AttendanceAPI.getClassAttendanceCount(instance.instanceId)
-      .then(function (count) { setAttendanceCount(count); })
-      .catch(function () {});
+    loadExistingAttendance();
   }, [instance.instanceId]);
 
   async function handleSearch(e) {
@@ -79,7 +96,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
     if (successCount > 0) {
       setSubmitSuccess('Attendance recorded for ' + successCount + ' student(s).');
       setAttendees([]);
-      setAttendanceCount(function (prev) { return prev + successCount; });
+      loadExistingAttendance();
     }
   }
 
@@ -98,6 +115,29 @@ function AttendanceForm({ instance, onBack, onComplete }) {
             <span style={{ color: 'red', marginLeft: '8px' }}>(!) Over capacity</span>
           )}
         </span>
+
+        <div style={{ marginTop: '8px' }}>
+          <p style={{ margin: '0 0 4px', fontWeight: '700' }}>Current attendance list:</p>
+          {isLoadingExistingAttendance && <p style={{ margin: 0 }}>Loading attendance list...</p>}
+          {!isLoadingExistingAttendance && existingAttendanceError && (
+            <p style={{ margin: 0, color: 'red' }}>Could not load attendance list: {existingAttendanceError}</p>
+          )}
+          {!isLoadingExistingAttendance && !existingAttendanceError && existingAttendance.length === 0 && (
+            <p style={{ margin: 0 }}>No attendance recorded yet for this class.</p>
+          )}
+          {!isLoadingExistingAttendance && !existingAttendanceError && existingAttendance.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: '18px' }}>
+              {existingAttendance.map(function (record) {
+                return (
+                  <li key={record.attendanceId}>
+                    {record.firstName} {record.lastName}
+                    {record.attendanceTime ? ' (' + YogiUtils.formatTime(record.attendanceTime) + ')' : ''}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
 
       {submitSuccess && <p style={{ color: 'green', marginBottom: '12px' }}>{submitSuccess}</p>}

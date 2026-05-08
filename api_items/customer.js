@@ -19,7 +19,7 @@ module.exports = createRouter({
 			required: ['customerId']
 		},
 		getCustomerByName: {
-			fields: ['firstName', 'lastName'],
+			fields: ['firstName', 'lastName', 'partialMatch'],
 			required: ['lastName']
 		},
 		getAllCustomers: {
@@ -107,15 +107,22 @@ module.exports = createRouter({
 
 		// Retrieves customers by first and/or last name
 		async getCustomerByName(req, res) {
-			const { firstName, lastName } = req.body;
+			const { firstName, lastName, partialMatch } = req.body;
 			if (!requireField(res, lastName, 'lastName', BACK))
 				return;
 
+			const isPartial = partialMatch === true || partialMatch === 'true';
+			const escapedLast = lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			const lastPattern = isPartial ? escapedLast : `^${escapedLast}$`;
+
 			const query = {
-				lastName: new RegExp(`^${lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+				lastName: new RegExp(lastPattern, 'i')
 			};
-			if (firstName && typeof firstName === 'string' && firstName.trim())
-				query.firstName = new RegExp(`^${firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+			if (firstName && typeof firstName === 'string' && firstName.trim()) {
+				const escapedFirst = firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const firstPattern = isPartial ? escapedFirst : `^${escapedFirst}$`;
+				query.firstName = new RegExp(firstPattern, 'i');
+			}
 
 			const docs = await Customer.find(query).lean();
 			if (!docs.length)

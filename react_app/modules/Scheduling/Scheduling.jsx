@@ -139,10 +139,11 @@ function Scheduling({ user }) {
       {!isLoading && (
         <>
           {/* Tab navigation */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid #000', paddingBottom: '0' }}>
+          <div className="scheduling-subtabs" style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid #000', paddingBottom: '0' }}>
             {[['series', 'Class Series'], ['instances', 'Instances']].map(function (tab) {
               return (
                 <button
+                  className="subtab-button"
                   key={tab[0]}
                   onClick={function () { setActiveTab(tab[0]); }}
                   style={{

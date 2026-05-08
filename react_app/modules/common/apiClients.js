@@ -81,10 +81,13 @@ var AttendanceAPI = {
     return allInstances;
   },
 
-  // Search for customers by last name (exact case-insensitive match).
-  // Optionally narrow by first name. Returns an empty array if none found.
+  // Search for customers by partial last/first name (case-insensitive) for attendance workflow.
+  // Returns an empty array if none found.
   searchCustomersByName: async function (lastName, firstName) {
-    var body = { lastName: lastName.trim() };
+    var body = {
+      lastName: lastName.trim(),
+      partialMatch: true
+    };
     if (firstName && firstName.trim()) body.firstName = firstName.trim();
     try {
       return await apiPost('/api/customer/getCustomerByName', body);
@@ -116,6 +119,57 @@ var AttendanceAPI = {
       attendanceDate: YogiUtils.todayStr(),
       attendanceTime: YogiUtils.currentTimeStr()
     });
+  },
+
+  // Fetch current attendance roster for a class instance with resolved customer names.
+  getClassAttendanceList: async function (instanceId) {
+    var records;
+    try {
+      records = await apiPost('/api/attendance/getByClass', { instanceId: instanceId });
+    } catch (err) {
+      if (err.status === 404) return [];
+      throw err;
+    }
+
+    if (!records || records.length === 0) return [];
+
+    var uniqueCustomerIds = Array.from(new Set(records.map(function (r) { return r.customerId; })));
+    var customerMap = {};
+
+    var customerResults = await Promise.allSettled(uniqueCustomerIds.map(function (customerId) {
+      return CustomerAPI.getCustomerById(customerId);
+    }));
+
+    for (var i = 0; i < uniqueCustomerIds.length; i++) {
+      if (customerResults[i].status === 'fulfilled' && customerResults[i].value) {
+        customerMap[uniqueCustomerIds[i]] = customerResults[i].value;
+      }
+    }
+
+    var roster = records.map(function (record) {
+      var customer = customerMap[record.customerId];
+      return {
+        attendanceId: record.attendanceId,
+        customerId: record.customerId,
+        firstName: customer ? customer.firstName : record.customerId,
+        lastName: customer ? customer.lastName : '',
+        attendanceTime: record.attendanceTime || ''
+      };
+    });
+
+    roster.sort(function (a, b) {
+      var aLast = (a.lastName || '').toLowerCase();
+      var bLast = (b.lastName || '').toLowerCase();
+      if (aLast !== bLast) return aLast.localeCompare(bLast);
+
+      var aFirst = (a.firstName || '').toLowerCase();
+      var bFirst = (b.firstName || '').toLowerCase();
+      if (aFirst !== bFirst) return aFirst.localeCompare(bFirst);
+
+      return (a.attendanceId || '').localeCompare(b.attendanceId || '');
+    });
+
+    return roster;
   }
 
 };
