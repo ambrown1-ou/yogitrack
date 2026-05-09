@@ -31,6 +31,16 @@ var apiPost = async function (path, body) {
   return data.results;
 };
 
+var compareInstancesByDateTime = function (a, b) {
+  var dateCompare = (a.instanceDate || '').localeCompare(b.instanceDate || '');
+  if (dateCompare !== 0) return dateCompare;
+
+  var timeCompare = (a.startTime || '').localeCompare(b.startTime || '');
+  if (timeCompare !== 0) return timeCompare;
+
+  return (a.instanceId || '').localeCompare(b.instanceId || '');
+};
+
 // ---------------------------------------------------------------------------
 // AttendanceAPI - Methods for the instructor attendance workflow
 // ---------------------------------------------------------------------------
@@ -74,20 +84,16 @@ var AttendanceAPI = {
       }
     }
 
-    // Sort by instanceDate ascending
-    allInstances.sort(function (a, b) {
-      return a.instanceDate.localeCompare(b.instanceDate);
-    });
+    // Sort by instanceDate ascending, then earliest startTime within the day.
+    allInstances.sort(compareInstancesByDateTime);
     return allInstances;
   },
 
-  // Search for customers by partial last/first name (case-insensitive) for attendance workflow.
+  // Search for customers by partial first name, last name, or both (case-insensitive) for attendance workflow.
   // Returns an empty array if none found.
   searchCustomersByName: async function (lastName, firstName) {
-    var body = {
-      lastName: lastName.trim(),
-      partialMatch: true
-    };
+    var body = { partialMatch: true };
+    if (lastName && lastName.trim()) body.lastName = lastName.trim();
     if (firstName && firstName.trim()) body.firstName = firstName.trim();
     try {
       return await apiPost('/api/customer/getCustomerByName', body);
@@ -271,9 +277,7 @@ var CalendarAPI = {
       }
     }
 
-    allInstances.sort(function (a, b) {
-      return a.instanceDate.localeCompare(b.instanceDate);
-    });
+    allInstances.sort(compareInstancesByDateTime);
     return allInstances;
   },
 

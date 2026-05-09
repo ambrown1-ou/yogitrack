@@ -38,7 +38,10 @@ function AttendanceForm({ instance, onBack, onComplete }) {
 
   async function handleSearch(e) {
     e.preventDefault();
-    if (!searchLastName.trim()) return;
+    if (!searchFirstName.trim() && !searchLastName.trim()) {
+      setSearchError('Enter a first name, last name, or both.');
+      return;
+    }
     setIsSearching(true);
     setSearchError('');
     setSearchResults([]);
@@ -152,17 +155,16 @@ function AttendanceForm({ instance, onBack, onComplete }) {
               type="text"
               value={searchFirstName}
               onChange={function (e) { setSearchFirstName(e.target.value); }}
-              placeholder="Optional"
+              placeholder="First or partial first"
             />
           </div>
           <div className="form-group" style={{ flex: 1, marginBottom: 0, minWidth: '120px' }}>
-            <label>Last Name *</label>
+            <label>Last Name</label>
             <input
               type="text"
               value={searchLastName}
               onChange={function (e) { setSearchLastName(e.target.value); }}
-              placeholder="Required"
-              required
+              placeholder="Last or partial last"
             />
           </div>
           <button type="submit" disabled={isSearching} style={{ flex: 'unset', whiteSpace: 'nowrap' }}>
