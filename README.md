@@ -326,6 +326,13 @@ No parameters.
 | newPassword | string | min 6 characters | Yes |
 | confirmPassword | string | must match newPassword | |
 
+#### `resetPassword`
+| Parameter | Type | Format / Values | Required |
+|---|---|---|---|
+| username | string | | Yes |
+
+`adminuser` account cannot be reset through this endpoint.
+
 #### `logout`
 No parameters.
 
