@@ -12,6 +12,8 @@ function Calendar({ user }) {
   var [instances, setInstances] = React.useState([]);
   var [seriesList, setSeriesList] = React.useState([]);
   var [instructorList, setInstructorList] = React.useState([]);
+  var [instructorRecord, setInstructorRecord] = React.useState(null);
+  var [viewMode, setViewMode] = React.useState(user.role === 'instructor' ? 'mine' : 'all');
   var [isLoading, setIsLoading] = React.useState(false);
   var [error, setError] = React.useState('');
   var [selectedDay, setSelectedDay] = React.useState(null);
@@ -32,8 +34,20 @@ function Calendar({ user }) {
   }, []);
 
   React.useEffect(function () {
+    if (user.role !== 'instructor') return;
+
+    AttendanceAPI.getInstructorRecord(user.email)
+      .then(function (record) {
+        setInstructorRecord(record || null);
+      })
+      .catch(function () {
+        setInstructorRecord(null);
+      });
+  }, [user.role, user.email]);
+
+  React.useEffect(function () {
     loadCalendar(year, month);
-  }, [year, month]);
+  }, [year, month, viewMode, instructorRecord ? instructorRecord.instructorId : '']);
 
   async function loadCalendar(y, m) {
     setIsLoading(true);
@@ -43,7 +57,19 @@ function Calendar({ user }) {
       var startDate = y + '-' + String(m + 1).padStart(2, '0') + '-01';
       var lastDay = new Date(y, m + 1, 0).getDate();
       var endDate = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0');
-      var data = await CalendarAPI.getCalendarClasses(startDate, endDate);
+
+      var data;
+      if (user.role === 'instructor' && viewMode === 'mine') {
+        if (!instructorRecord || !instructorRecord.instructorId) {
+          setInstances([]);
+          setError('No instructor record found for this account. Showing no classes in My Classes view.');
+          return;
+        }
+        data = await CalendarAPI.getCalendarClassesByInstructor(instructorRecord.instructorId, startDate, endDate);
+      } else {
+        data = await CalendarAPI.getCalendarClasses(startDate, endDate);
+      }
+
       setInstances(data);
     } catch (err) {
       setError(err.message);
@@ -133,6 +159,42 @@ function Calendar({ user }) {
         </h2>
         <button onClick={nextMonth} style={{ flex: 'unset' }}>{'Next >>'}</button>
       </div>
+
+      {user.role === 'instructor' && (
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={function () { setViewMode('mine'); }}
+              style={{
+                flex: 'unset',
+                fontWeight: viewMode === 'mine' ? '700' : '400',
+                borderBottom: viewMode === 'mine' ? '3px solid #000' : '3px solid transparent',
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0
+              }}
+            >
+              My Classes
+            </button>
+            <button
+              type="button"
+              onClick={function () { setViewMode('all'); }}
+              style={{
+                flex: 'unset',
+                fontWeight: viewMode === 'all' ? '700' : '400',
+                borderBottom: viewMode === 'all' ? '3px solid #000' : '3px solid transparent',
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0
+              }}
+            >
+              Full Schedule
+            </button>
+          </div>
+          <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: '#555' }}>
+            {viewMode === 'mine' ? 'Showing classes assigned to you.' : 'Showing all scheduled classes.'}
+          </p>
+        </div>
+      )}
 
       {isLoading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
