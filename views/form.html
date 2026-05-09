@@ -19,5 +19,18 @@
       </form>
     </div>
   </div>
+  <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+      var np = document.getElementById('newPassword');
+      var cp = document.getElementById('confirmPassword');
+      if (np && cp) {
+        if (np.value !== cp.value) {
+          e.preventDefault();
+          alert('Passwords do not match. Please re-enter.');
+          cp.focus();
+        }
+      }
+    });
+  </script>
 </body>
 </html>

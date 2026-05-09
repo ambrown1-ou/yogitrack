@@ -19,7 +19,7 @@ module.exports = createRouter({
     login: { fields: ['username', 'password'] },
     getCurrentUser: { fields: [] },
     getAllUsers: { fields: [] },
-    changePassword: { fields: ['newPassword'], required: ['newPassword'] },
+    changePassword: { fields: ['newPassword', 'confirmPassword'], required: ['newPassword'] },
     logout: { fields: [] }
   },
   handlers: {

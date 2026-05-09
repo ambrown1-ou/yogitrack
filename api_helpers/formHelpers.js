@@ -72,6 +72,18 @@ function getFieldConfig(fieldName) {
 			label: 'Password',
 			required: true
 		},
+		newPassword: {
+			type: 'password',
+			placeholder: 'Enter new password',
+			label: 'New Password',
+			required: true
+		},
+		confirmPassword: {
+			type: 'password',
+			placeholder: 'Confirm new password',
+			label: 'Confirm Password',
+			required: true
+		},
 		role: {
 			type: 'select',
 			options: ['manager', 'instructor', 'customer'],
