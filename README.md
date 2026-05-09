@@ -1,32 +1,35 @@
-YogiTrack
+# YogiTrack
 
-Yoga studio management app built with Node.js, Express, MongoDB, and a small React app served from a single container. The API endpoints with no url query return form-based HTML views for testing and demonstration.
+Yoga studio management app built with Node.js, Express, MongoDB, and a React frontend served by the same app.
 
+## Run
 
-Run:
+```bash
 npm install
 npm start
+```
 
-Environment variables expected:
-MONGODB_URI
-DB_NAME
+## Environment Variables
 
-Notes:
-All API actions use POST.
-API returns JSON with consistent structure to aid in web API testing and validation.
+- `MONGODB_URI`
+- `DB_NAME`
 
+## API Notes
+
+- All API actions use `POST`.
+- API responses use a consistent JSON envelope.
 
 ```javascript
 {
-  "success": true || false,
-  "resultsType": "array"||"number"||"errorMessage"||"singleId", // etc
-  "results": [] || 3 || "Error 123" || "C00001" // etc
+  "success": true,
+  "resultsType": "array", // or "error" or "confirmation"
+  "results": []
 }
 ```
 
+## File Structure
 
-Current file structure:
-
+```text
 yogitrack/
   .env
   .gitignore
@@ -34,12 +37,14 @@ yogitrack/
   package.json
   package-lock.json
   README.md
+
   api_helpers/
     dbStatus.js
     formHelpers.js
     idGenerator.js
     routeFactory.js
     templateEngine.js
+
   api_items/
     attendance.js
     class.js
@@ -49,6 +54,7 @@ yogitrack/
     package.js
     sale.js
     user.js
+
   api_models/
     Attendance.js
     Class.js
@@ -57,14 +63,17 @@ yogitrack/
     Package.js
     Sale.js
     User.js
+
   docs/
     yogitrack-class-diagram-reference.html
     yogitrack-class-diagram-reference.txt
+
   public/
     index.html
     robots.txt
     css/
       styles.css
+
   react_app/
     index.html
     index.js
@@ -86,6 +95,18 @@ yogitrack/
         InstanceForm.jsx
         Scheduling.jsx
         SeriesEditForm.jsx
+
+  scripts/
+    overwrite-qa-to-prod.js
+    mongodump.exe
+    mongorestore.exe
+    mongoexport.exe
+    mongoimport.exe
+    mongostat.exe
+    mongotop.exe
+    mongofiles.exe
+    bsondump.exe
+
   views/
     apiIndex.html
     confirmMessage.html
@@ -95,22 +116,29 @@ yogitrack/
     status.html
     successMessage.html
 
-Recent changes from the previous version:
+  db-backups/
+  db-backups-test/
+  node_modules/
+```
+
+## Recent Changes
 
 - Login now accepts username or email.
 - Manager accounts can be linked to instructor records by matching email.
-- Role switching is now supported for dual instructor/manager accounts.
-- Class series creation now uses batch ID generation and bulk insert for class instances.
-- Class start and end date constraints were refined in the model, API, and React forms.
-- Series edit flow now has option to preserve or overwrite existing edits.
-- Pagination controls were added to the admin/scheduling/attendance lists.
-- Take Attendance customer search now supports partial name matches.
-- Take Attendance now shows the current attendance list for the selected class instance.
-- Light styling was added to the React app
-- Added an authentication exception specifically for getClassInstances
+- Role switching is supported for dual instructor/manager accounts.
+- Class series creation uses batch ID generation and bulk insert for class instances.
+- Class start/end date constraints were refined in model, API, and React forms.
+- Series edit flow supports preserving or overwriting instructor assignment.
+- Pagination controls were added to admin, scheduling, and attendance lists.
+- Take Attendance customer search supports partial first or last name.
+- Take Attendance shows the current attendance list for the selected class instance.
+- Light styling was added to the React app.
+- Authentication exception was added for `getClassInstances`.
+- Calendar and list views now sort same-day classes by start time (earliest to latest).
 
-Current role layout in the React app:
-- manager: Schedule, Calendar, Customers, Instructors
-- instructor: Attendance, Schedule, Calendar
-- customer: Calendar
+## Role Layout
+
+- `manager`: Schedule, Calendar, Customers, Instructors
+- `instructor`: Attendance, Schedule, Calendar
+- `customer`: Calendar
 

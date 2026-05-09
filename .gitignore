@@ -145,3 +145,7 @@ tests/
 mongo_collections/
 
 docs/
+
+db-backups/
+db-backups-test/
+scripts/

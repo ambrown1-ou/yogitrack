@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "db:qa-to-prod": "node scripts/overwrite-qa-to-prod.js",
+    "db:qa-to-prod:yes": "node scripts/overwrite-qa-to-prod.js --yes"
   },
   "name": "yogitrack",
   "version": "1.0.0",
