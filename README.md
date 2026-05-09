@@ -37,14 +37,12 @@ yogitrack/
   package.json
   package-lock.json
   README.md
-
   api_helpers/
     dbStatus.js
     formHelpers.js
     idGenerator.js
     routeFactory.js
     templateEngine.js
-
   api_items/
     attendance.js
     class.js
@@ -54,7 +52,6 @@ yogitrack/
     package.js
     sale.js
     user.js
-
   api_models/
     Attendance.js
     Class.js
@@ -63,17 +60,11 @@ yogitrack/
     Package.js
     Sale.js
     User.js
-
-  docs/
-    yogitrack-class-diagram-reference.html
-    yogitrack-class-diagram-reference.txt
-
   public/
     index.html
     robots.txt
     css/
       styles.css
-
   react_app/
     index.html
     index.js
@@ -95,18 +86,6 @@ yogitrack/
         InstanceForm.jsx
         Scheduling.jsx
         SeriesEditForm.jsx
-
-  scripts/
-    overwrite-qa-to-prod.js
-    mongodump.exe
-    mongorestore.exe
-    mongoexport.exe
-    mongoimport.exe
-    mongostat.exe
-    mongotop.exe
-    mongofiles.exe
-    bsondump.exe
-
   views/
     apiIndex.html
     confirmMessage.html
@@ -115,10 +94,6 @@ yogitrack/
     methodList.html
     status.html
     successMessage.html
-
-  db-backups/
-  db-backups-test/
-  node_modules/
 ```
 
 ## Recent Changes
