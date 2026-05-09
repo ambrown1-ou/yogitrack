@@ -256,7 +256,7 @@ function App() {
           const sessionUser = data.results[0];
           setUser(sessionUser);
           setIsLoggedIn(true);
-          if (!sessionUser.lastLogin) {
+          if (sessionUser.mustChangePassword) {
             setNeedsPasswordChange(true);
           } else {
             await checkDualRole(sessionUser);
@@ -274,7 +274,7 @@ function App() {
     setUser(loginData);
     setIsLoggedIn(true);
     setError('');
-    if (!loginData.lastLogin) {
+    if (loginData.mustChangePassword) {
       setNeedsPasswordChange(true);
     } else {
       await checkDualRole(loginData);

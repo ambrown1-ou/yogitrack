@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: null
+  },
+  mustChangePassword: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -75,8 +79,7 @@ userSchema.statics.findByUsername = function(username) {
   return this.findOne({ username: new RegExp(`^${safe}$`, 'i') });
 };
 
-// Verifies credentials; updates lastLogin only if it was already set (null = never logged in, preserve the signal).
-// Returns the authenticated user or null.
+// Verifies credentials and updates lastLogin. Returns the authenticated user or null.
 userSchema.statics.authenticate = async function(username, password) {
   const safe = String(username).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const user = await this.findOne({
@@ -88,10 +91,8 @@ userSchema.statics.authenticate = async function(username, password) {
   if (!user) return null;
   const valid = await user.verifyPassword(password);
   if (!valid) return null;
-  if (user.lastLogin !== null) {
-    user.lastLogin = new Date();
-    await user.save();
-  }
+  user.lastLogin = new Date();
+  await user.save();
   return user;
 };
 
@@ -103,7 +104,8 @@ userSchema.statics.toResponse = function(user) {
     role: user.role,
     email: user.email,
     dateCreated: user.createdAt,
-    lastLogin: user.lastLogin
+    lastLogin: user.lastLogin,
+    mustChangePassword: user.mustChangePassword
   };
 };
 
@@ -116,7 +118,8 @@ userSchema.statics.getAllUsers = async function() {
     role: u.role,
     email: u.email,
     dateCreated: u.createdAt,
-    lastLogin: u.lastLogin
+    lastLogin: u.lastLogin,
+    mustChangePassword: u.mustChangePassword
   }));
 };
 

@@ -86,7 +86,8 @@ module.exports = createRouter({
           username: candidateUsername,
           password: tempPassword, // pre-save hook hashes it
           role: 'instructor',
-          email: email.trim()
+          email: email.trim(),
+          mustChangePassword: true
           // lastLogin left null (default) — signals first-login password change required
         });
         await newUser.save();

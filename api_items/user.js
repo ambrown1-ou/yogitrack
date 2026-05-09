@@ -20,6 +20,7 @@ module.exports = createRouter({
     getCurrentUser: { fields: [] },
     getAllUsers: { fields: [] },
     changePassword: { fields: ['newPassword', 'confirmPassword'], required: ['newPassword'] },
+    resetPassword: { fields: ['username'], required: ['username'] },
     logout: { fields: [] }
   },
   handlers: {
@@ -110,10 +111,39 @@ module.exports = createRouter({
       }
 
       user.password = newPassword; // pre-save hook will hash it
-      user.lastLogin = new Date();
+      user.mustChangePassword = false;
       await user.save();
 
       sendSuccess(res, 'Password Changed Successfully', User.toResponse(user), BACK);
+    },
+
+    // Resets another user's password to a temporary value; manager only; adminuser is protected
+    async resetPassword(req, res) {
+      if (req.session.role !== 'manager') {
+        return sendError(res, 403, 'Forbidden', 'Only managers can reset passwords', BACK);
+      }
+
+      const { username } = req.body;
+      const normalized = User.normalizeUsername(username);
+
+      if (normalized.toLowerCase() === 'adminuser') {
+        return sendError(res, 403, 'Forbidden', 'The adminuser account cannot be reset through the API. Log in as adminuser and use changePassword instead.', BACK);
+      }
+
+      const user = await User.findByUsername(normalized);
+      if (!user) {
+        return sendError(res, 404, 'User Not Found', `No user found with username "${normalized}"`, BACK);
+      }
+
+      // TODO: This should  be updated to a more secure temp password generation method.
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      const tempPassword = 'Yogi' + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+
+      user.password = tempPassword;
+      user.mustChangePassword = true;
+      await user.save();
+
+      sendSuccess(res, 'Password Reset Successfully', Object.assign(User.toResponse(user), { tempPassword }), BACK);
     },
 
     // End the current session

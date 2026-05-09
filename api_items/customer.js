@@ -12,7 +12,8 @@ module.exports = createRouter({
 	basePath: BACK,
 	methods: {
 		addCustomer: {
-			fields: ['firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth']
+			fields: ['firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth'],
+			required: ['firstName', 'lastName']
 		},
 		getCustomerById: {
 			fields: ['customerId'],

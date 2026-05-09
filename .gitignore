@@ -138,6 +138,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+db-backups/
+db-backups-test/
+scripts/
+.github/agents/
+
 # python test packages
 python_test/
 tests/
@@ -145,7 +150,4 @@ tests/
 mongo_collections/
 
 docs/
-
-db-backups/
-db-backups-test/
-scripts/
+.gitignore
