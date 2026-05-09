@@ -55,6 +55,8 @@ userSchema.statics.validate = function(data) {
   const errors = [];
   if (!data.username || !data.password || !data.role)
     errors.push('Username, password, and role are required');
+  if (data.password && data.password.length > 128)
+    errors.push('Password must be 128 characters or fewer');
   if (data.role && !['manager', 'instructor', 'customer'].includes(data.role))
     errors.push('Role must be "manager", "instructor", or "customer"');
   return errors;
@@ -65,6 +67,8 @@ userSchema.statics.validateLogin = function(data) {
   const errors = [];
   if (!data.username || !data.password)
     errors.push('Username or email, and password are required');
+  if (data.password && data.password.length > 128)
+    errors.push('Password must be 128 characters or fewer');
   return errors;
 };
 

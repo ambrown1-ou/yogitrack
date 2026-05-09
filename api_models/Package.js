@@ -10,7 +10,8 @@ const packageSchema = new mongoose.Schema({
   packageName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 150
   },
   category: {
     type: String,
@@ -40,7 +41,8 @@ const packageSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: 500
   },
   isActive: {
     type: Boolean,

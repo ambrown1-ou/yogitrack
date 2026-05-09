@@ -26,6 +26,10 @@ module.exports = createRouter({
   handlers: {
     // Create a new user account for manager/instructor roles
     async register(req, res) {
+      if (req.session.role !== 'manager') {
+        return sendError(res, 403, 'Forbidden', 'Only managers can register new user accounts', BACK);
+      }
+
       const { username, password, role, email } = req.body;
 
       const errors = User.validate(req.body);
@@ -76,6 +80,9 @@ module.exports = createRouter({
 
     // Return all registered users
     async getAllUsers(req, res) {
+      if (req.session.role !== 'manager') {
+        return sendError(res, 403, 'Forbidden', 'Only managers can view all users', BACK);
+      }
       const users = await User.getAllUsers();
       sendSuccess(res, `Retrieved ${users.length} User(s)`, users, BACK);
     },

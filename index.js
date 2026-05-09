@@ -26,6 +26,12 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// Fail loudly if SESSION_SECRET is not set in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable is not set. Exiting.');
+  process.exit(1);
+}
+
 // Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'yogitrack-secret-key-change-in-production',
@@ -38,9 +44,9 @@ app.use(session({
   }
 }));
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware — body size limited to 10kb to prevent payload abuse
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Redirect root to the app dashboard
 app.get("/", (req, res) => {
@@ -56,11 +62,13 @@ app.get("/app", (req, res) => {
 
 app.use(express.static(path.join(__dirname, "react_app")));
 
-// Render the database status page
+// Render the database status page — manager only
 app.get("/status", async (req, res) => {
-  // Check if user is authenticated
   if (!req.session.userId) {
     return res.status(401).send('<h1>Authentication Required</h1><p>You must be logged in to view the database status. <a href="/app">Go to login</a></p>');
+  }
+  if (req.session.role !== 'manager') {
+    return res.status(403).send('<h1>Access Denied</h1><p>Only managers can view the database status.</p>');
   }
 
   try {
@@ -74,7 +82,7 @@ app.get("/status", async (req, res) => {
 // Require authentication for all API routes except /api/user/login and /api/user/register
 app.use("/api", (req, res, next) => {
   // Allow unauthenticated access to login and register endpoints
-  if ((req.path === '/user/login' || req.path === '/user/register') && (req.method === 'POST' || req.method === 'GET')) {
+  if (req.path === '/user/login' && (req.method === 'POST' || req.method === 'GET')) {
     return next();
   }
 

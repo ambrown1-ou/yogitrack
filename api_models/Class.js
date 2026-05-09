@@ -21,7 +21,8 @@ const classSeriesSchema = new mongoose.Schema({
   className: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 150
   },
   classType: {
     type: String,
@@ -84,6 +85,8 @@ classSeriesSchema.statics.validate = function (data) {
   const errors = [];
   if (!data.className || !data.className.trim())
     errors.push('Class name is required');
+  else if (data.className.trim().length > 150)
+    errors.push('Class name must be 150 characters or fewer');
   if (!data.classType || !['General', 'Special'].includes(data.classType))
     errors.push('Class type must be "General" or "Special"');
   if (!data.startDate)
@@ -179,7 +182,8 @@ const classInstanceSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: 1000
   },
   createdAt: {
     type: Date,

@@ -46,7 +46,8 @@ const attendanceSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: 1000
   },
   createdAt: {
     type: Date,

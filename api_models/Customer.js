@@ -10,25 +10,30 @@ const customerSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 100
   },
   lastName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 100
   },
   email: {
     type: String,
     trim: true,
+    maxlength: 200,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
   },
   phone: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: 20
   },
   address: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: 300
   },
   dateOfBirth: {
     type: Date
@@ -81,12 +86,20 @@ customerSchema.statics.validate = function(data) {
   const errors = [];
   if (!data.firstName || typeof data.firstName !== 'string' || data.firstName.trim().length === 0)
     errors.push("First name is required");
+  else if (data.firstName.trim().length > 100)
+    errors.push("First name must be 100 characters or fewer");
   if (!data.lastName || typeof data.lastName !== 'string' || data.lastName.trim().length === 0)
     errors.push("Last name is required");
+  else if (data.lastName.trim().length > 100)
+    errors.push("Last name must be 100 characters or fewer");
+  if (data.email && data.email.length > 200)
+    errors.push("Email must be 200 characters or fewer");
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
     errors.push("Email must be valid");
   if (data.phone && !/^\d{10,}$/.test(data.phone.replace(/\D/g, '')))
     errors.push("Phone must contain at least 10 digits");
+  if (data.address && data.address.length > 300)
+    errors.push("Address must be 300 characters or fewer");
   if (data.preferredContactMethod && !['email', 'phone'].includes(data.preferredContactMethod))
     errors.push("Preferred contact method must be 'email' or 'phone'");
   return errors;
