@@ -19,6 +19,7 @@ module.exports = createRouter({
     login: { fields: ['username', 'password'] },
     getCurrentUser: { fields: [] },
     getAllUsers: { fields: [] },
+    changePassword: { fields: ['newPassword'], required: ['newPassword'] },
     logout: { fields: [] }
   },
   handlers: {
@@ -33,6 +34,13 @@ module.exports = createRouter({
       const existingUser = await User.findByUsername(normalizedUsername);
       if (existingUser) {
         return sendError(res, 409, 'User Already Exists', `A user with username "${normalizedUsername}" already exists`, BACK);
+      }
+
+      // Reject if email is already in use by another user account
+      if (email && email.trim()) {
+        const emailExists = await User.findOne({ email: email.trim() }).lean();
+        if (emailExists)
+          return sendError(res, 409, 'Email Already In Use', `A user account already exists with email "${email.trim()}"`, BACK);
       }
 
       // Create and save the new user; password hashed by pre-save hook
@@ -83,6 +91,29 @@ module.exports = createRouter({
       }
 
       sendSuccess(res, 'Authenticated User', User.toResponse(user), BACK);
+    },
+
+    // Change the password for the currently logged-in user; clears firstLogin flag
+    async changePassword(req, res) {
+      if (!req.session.userId) {
+        return sendError(res, 401, 'Not Authenticated', 'No active login session found', BACK);
+      }
+
+      const { newPassword } = req.body;
+      if (!newPassword || newPassword.length < 6) {
+        return sendError(res, 400, 'Validation Failed', 'New password must be at least 6 characters', BACK);
+      }
+
+      const user = await User.findById(req.session.userId);
+      if (!user) {
+        return sendError(res, 401, 'User Not Found', 'Session user no longer exists', BACK);
+      }
+
+      user.password = newPassword; // pre-save hook will hash it
+      user.lastLogin = new Date();
+      await user.save();
+
+      sendSuccess(res, 'Password Changed Successfully', User.toResponse(user), BACK);
     },
 
     // End the current session

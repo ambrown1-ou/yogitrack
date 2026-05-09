@@ -190,3 +190,132 @@ footer {
   padding: 12px;
   margin-bottom: 16px;
 }
+
+/* ---- React App Module Styles ---- */
+
+/* Header nav tab buttons */
+.header nav button {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 6px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.header nav button:hover {
+  text-decoration: none;
+  border-bottom-color: #555;
+}
+
+/* Calendar grid: prevent cells from overflowing */
+.calendar-grid td {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Smaller text in tight contexts */
+.text-sm {
+  font-size: 0.85rem;
+}
+
+/* Status badge coloring */
+.status-scheduled { color: #000; }
+.status-cancelled { color: #888; text-decoration: line-through; }
+.status-completed { color: #000; font-style: italic; }
+
+/* ---- Subtle React App Polish (scoped to #root) ---- */
+
+#root {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+#root .card,
+#root .header {
+  border-color: #d8d8d8;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+#root .header {
+  background: linear-gradient(180deg, #fffefc 0%, #fff7f2 100%);
+}
+
+#root h1,
+#root h2,
+#root h3 {
+  letter-spacing: 0.01em;
+}
+
+#root input,
+#root select {
+  border-color: #cfcfcf;
+  border-radius: 8px;
+}
+
+#root input:focus,
+#root select:focus {
+  outline: 2px solid #c84b11;
+  outline-offset: 1px;
+}
+
+#root button,
+#root .button,
+#root .cancel-btn {
+  border-color: #cfcfcf;
+  border-radius: 8px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+#root button:hover,
+#root .button:hover,
+#root .cancel-btn:hover {
+  background: #fff3ea;
+  border-color: #c84b11;
+  text-decoration: none;
+}
+
+#root .header nav button {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#root .scheduling-subtabs .subtab-button {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#root .link-button {
+  color: #9d3a0c;
+}
+
+#root table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#root th {
+  background: #c84b11;
+  color: #fff;
+  border-color: #b84310;
+}
+
+#root td {
+  border-color: #ecd8cb;
+}
+
+#root tbody tr:nth-child(even) {
+  background: #fffaf7;
+}
+
+@media (max-width: 640px) {
+  #root .form-actions {
+    flex-direction: column;
+  }
+
+  #root .header {
+    padding: 18px;
+  }
+}
+

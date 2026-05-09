@@ -17,7 +17,7 @@ module.exports = createRouter({
     getAttendance: { fields: ['attendanceId'], required: ['attendanceId'] },
     getByClass: { fields: ['instanceId'], required: ['instanceId'] },
     getByCustomer: { fields: ['customerId'], required: ['customerId'] },
-    getAll: { fields: [] },
+    getAllAttendance: { fields: [] },
     deleteAttendance: { fields: ['attendanceId'], required: ['attendanceId'] },
   },
   handlers: {
@@ -37,6 +37,11 @@ module.exports = createRouter({
       const customer = await Customer.findOne({ customerId: customerId.trim() });
       if (!customer)
         return sendError(res, 404, 'Customer Not Found', `No customer found with ID: ${customerId}`, BACK);
+
+      // Prevent recording the same customer twice for the same instance
+      const duplicate = await Attendance.findOne({ instanceId: instanceId.trim(), customerId: customerId.trim() }).lean();
+      if (duplicate)
+        return sendError(res, 409, 'Duplicate Attendance', `Customer ${customerId.trim()} already has an attendance record for instance ${instanceId.trim()} (attendanceId: ${duplicate.attendanceId})`, BACK);
 
       const beforeBalance = customer.classBalance;
       let packageEntry = null;
@@ -107,7 +112,7 @@ module.exports = createRouter({
     },
 
     // Returns all attendance records
-    async getAll(req, res) {
+    async getAllAttendance(req, res) {
       const records = await Attendance.find({}).sort({ attendanceDate: -1 }).lean();
       sendSuccess(res, `Retrieved ${records.length} Attendance Record(s)`, records.map(r => Attendance.serialize(r)), BACK);
     },

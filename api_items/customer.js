@@ -19,14 +19,14 @@ module.exports = createRouter({
 			required: ['customerId']
 		},
 		getCustomerByName: {
-			fields: ['firstName', 'lastName'],
-			required: ['lastName']
+			fields: ['firstName', 'lastName', 'partialMatch'],
+			required: []
 		},
 		getAllCustomers: {
 			fields: []
 		},
 		updateCustomer: {
-			fields: ['customerId', 'firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth'],
+			fields: ['customerId', 'firstName', 'lastName', 'address', 'phone', 'email', 'preferredContactMethod', 'dateOfBirth', 'confirmDuplicate'],
 			required: ['customerId']
 		},
 		deleteCustomer: {
@@ -42,11 +42,18 @@ module.exports = createRouter({
 			if (errors.length)
 				return sendError(res, 400, 'Validation Failed', errors.join('; '), BACK);
 
+			// Reject if email is already used by another customer
+			if (email && email.trim()) {
+				const emailTaken = await Customer.findOne({ email: new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }).lean();
+				if (emailTaken)
+					return sendError(res, 409, 'Email Already In Use', `A customer already exists with email "${email.trim()}" (ID: ${emailTaken.customerId})`, BACK);
+			}
+
 			// Duplicate name warning - allow proceed with confirmation
 			if (confirmDuplicate !== 'true') {
 				const existing = await Customer.findOne({
-					firstName: firstName.trim(),
-					lastName: lastName.trim()
+					firstName: new RegExp(`^${firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+					lastName: new RegExp(`^${lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
 				}).lean();
 				if (existing) {
 					return sendConfirmation(res, {
@@ -100,15 +107,26 @@ module.exports = createRouter({
 
 		// Retrieves customers by first and/or last name
 		async getCustomerByName(req, res) {
-			const { firstName, lastName } = req.body;
-			if (!requireField(res, lastName, 'lastName', BACK))
-				return;
+			const { firstName, lastName, partialMatch } = req.body;
+			const hasFirst = typeof firstName === 'string' && firstName.trim();
+			const hasLast = typeof lastName === 'string' && lastName.trim();
+			if (!hasFirst && !hasLast)
+				return sendError(res, 400, 'Error: Required Fields Missing', 'firstName or lastName is required', BACK);
 
-			const query = {
-				lastName: lastName.trim()
-			};
-			if (firstName && typeof firstName === 'string' && firstName.trim())
-				query.firstName = firstName.trim();
+			const isPartial = partialMatch === true || partialMatch === 'true';
+			const query = {};
+
+			if (hasLast) {
+				const escapedLast = lastName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const lastPattern = isPartial ? escapedLast : `^${escapedLast}$`;
+				query.lastName = new RegExp(lastPattern, 'i');
+			}
+
+			if (hasFirst) {
+				const escapedFirst = firstName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const firstPattern = isPartial ? escapedFirst : `^${escapedFirst}$`;
+				query.firstName = new RegExp(firstPattern, 'i');
+			}
 
 			const docs = await Customer.find(query).lean();
 			if (!docs.length)
@@ -125,7 +143,7 @@ module.exports = createRouter({
 
 		// Updates an existing customer's fields by customerId; only provided fields are changed
 		async updateCustomer(req, res) {
-			const { customerId, firstName, lastName, address, phone, email, preferredContactMethod, dateOfBirth } = req.body;
+			const { customerId, firstName, lastName, address, phone, email, preferredContactMethod, dateOfBirth, confirmDuplicate } = req.body;
 			if (!requireField(res, customerId, 'customerId', BACK))
 				return;
 
@@ -138,6 +156,39 @@ module.exports = createRouter({
 			});
 			if (!doc)
 				return sendError(res, 404, 'Customer Not Found', `No customer found with ID: ${customerId}`, BACK);
+
+			// Email uniqueness check when email is being changed
+			if (email !== undefined && email.trim() && email.trim().toLowerCase() !== (doc.email || '').toLowerCase()) {
+				const emailTaken = await Customer.findOne({
+					email: new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+					customerId: { $ne: customerId.trim() }
+				}).lean();
+				if (emailTaken)
+					return sendError(res, 409, 'Email Already In Use', `Another customer already uses email "${email.trim()}" (ID: ${emailTaken.customerId})`, BACK);
+			}
+
+			// Name duplicate warning when name is being changed
+			const newFirst = firstName ? firstName.trim() : doc.firstName;
+			const newLast = lastName ? lastName.trim() : doc.lastName;
+			const nameChanging = (firstName && firstName.trim() !== doc.firstName) || (lastName && lastName.trim() !== doc.lastName);
+			if (nameChanging && confirmDuplicate !== 'true') {
+				const sameName = await Customer.findOne({
+					firstName: new RegExp(`^${newFirst.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+					lastName: new RegExp(`^${newLast.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+					customerId: { $ne: customerId.trim() }
+				}).lean();
+				if (sameName) {
+					return sendConfirmation(res, {
+						message: 'Duplicate Customer Name Found',
+						details: `A customer named "${newFirst} ${newLast}" already exists (ID: ${sameName.customerId}). Do you want to rename this customer to the same name?`,
+						action: `${BACK}/updateCustomer`,
+						formData: req.body,
+						extraFields: { confirmDuplicate: 'true' },
+						confirmText: 'Yes, Update Customer',
+						backUrl: BACK
+					});
+				}
+			}
 
 			if (firstName)
 				doc.firstName = firstName.trim();

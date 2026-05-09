@@ -1,7 +1,7 @@
 const { createRouter, sendError, sendSuccess } = require('../api_helpers/routeFactory');
 const { ClassSeries, ClassInstance, DURATION_MINUTES, DAYS_OF_WEEK } = require('../api_models/Class');
 const Instructor = require('../api_models/Instructor');
-const { generateId } = require('../api_helpers/idGenerator');
+const { generateId, generateIds } = require('../api_helpers/idGenerator');
 
 const BACK = '/api/class';
 
@@ -59,28 +59,28 @@ module.exports = createRouter({
   moduleTitle: 'Class',
   basePath: BACK,
   methods: {
-    addClass: {
+    addClassSeries: {
       fields: ['className', 'classType', 'startDate', 'endDate', 'daysOfWeek', 'startTime', 'duration', 'defaultInstructorId', 'maxCapacity', 'payRate'],
       required: ['className', 'classType', 'startDate', 'endDate', 'daysOfWeek', 'startTime', 'duration', 'payRate']
     },
-    getClass: { fields: ['classId'], required: ['classId'] },
-    getAllClasses: { fields: [] },
-    updateClass: {
-      fields: ['classId', 'className', 'classType', 'maxCapacity', 'payRate', 'defaultInstructorId'],
+    getClassSeries: { fields: ['classId'], required: ['classId'] },
+    getAllClassSeries: { fields: [] },
+    updateClassSeries: {
+      fields: ['classId', 'className', 'classType', 'maxCapacity', 'payRate', 'defaultInstructorId', 'endDate'],
       required: ['classId']
     },
-    deleteClass: { fields: ['classId'], required: ['classId'] },
-    getInstancesByClass: { fields: ['classId'], required: ['classId'] },
-    updateInstance: {
+    deleteClassSeries: { fields: ['classId'], required: ['classId'] },
+    getClassInstances: { fields: ['classId', 'startDate', 'endDate'], required: ['classId'] },
+    updateClassInstance: {
       fields: ['instanceId', 'instructorId', 'startTime', 'duration', 'status', 'notes'],
       required: ['instanceId']
     },
-    cancelInstance: { fields: ['instanceId'], required: ['instanceId'] },
+    cancelClassInstance: { fields: ['instanceId'], required: ['instanceId'] },
   },
   handlers: {
     // Creates a ClassSeries and generates one ClassInstance for each matching date in the range.
     // Validates that no instance would conflict with an existing scheduled class in the studio.
-    async addClass(req, res) {
+    async addClassSeries(req, res) {
       // Normalize daysOfWeek — form may send it as a single string or array
       const raw = req.body;
       if (raw.daysOfWeek && !Array.isArray(raw.daysOfWeek)) {
@@ -107,15 +107,22 @@ module.exports = createRouter({
       if (instanceDates.length === 0)
         return sendError(res, 400, 'No Instances Generated', 'The selected days of week produce no dates within the start/end range', BACK);
 
-      // Check studio conflicts for every date before creating anything
-      const allConflicts = [];
-      for (const date of instanceDates) {
-        const conflicts = await checkStudioConflict(date, startTime, duration);
-        allConflicts.push(...conflicts);
-      }
-      if (allConflicts.length > 0) {
+      // Single query for all existing instances in the date range, then check conflicts in memory
+      const newStartMin = timeToMinutes(startTime);
+      const newEndMin = newStartMin + DURATION_MINUTES[duration];
+      const existingInRange = await ClassInstance.find({
+        instanceDate: { $in: instanceDates },
+        status: { $ne: 'cancelled' }
+      }).lean();
+      const conflictingExisting = existingInRange.filter(inst => {
+        const existStart = timeToMinutes(inst.startTime);
+        const existEnd = existStart + DURATION_MINUTES[inst.duration];
+        return newStartMin < existEnd && newEndMin > existStart;
+      });
+      if (conflictingExisting.length > 0) {
         return sendError(res, 409, 'Studio Conflict Detected',
-          `The proposed schedule overlaps existing classes on ${allConflicts.length} occurrence(s): ${allConflicts.map(c => `${c.instanceDate} ${c.startTime} (${c.duration})`).join('; ')}`,
+          `The proposed schedule overlaps existing classes on ${conflictingExisting.length} occurrence(s): ` +
+          conflictingExisting.map(c => `${c.instanceDate.toISOString().split('T')[0]} ${c.startTime} (${c.duration})`).join('; '),
           BACK);
       }
 
@@ -136,22 +143,20 @@ module.exports = createRouter({
       });
       await series.save();
 
-      // Generate all instances; instructorId is required — use default or placeholder
-      const instances = [];
-      for (const date of instanceDates) {
-        const instanceId = await generateId('instance');
-        const inst = new ClassInstance({
-          instanceId,
-          classId,
-          instanceDate: date,
-          startTime,
-          duration,
-          instructorId: defaultInstructorId ? defaultInstructorId.trim() : 'UNASSIGNED',
-          status: 'scheduled'
-        });
-        await inst.save();
-        instances.push(ClassInstance.serialize(inst.toObject()));
-      }
+      // Reserve all instance IDs in one atomic DB call, then bulk-insert
+      const instanceIds = await generateIds('instance', instanceDates.length);
+      const instructorId = defaultInstructorId ? defaultInstructorId.trim() : 'UNASSIGNED';
+      const instanceDocs = instanceDates.map((date, i) => ({
+        instanceId: instanceIds[i],
+        classId,
+        instanceDate: date,
+        startTime,
+        duration,
+        instructorId,
+        status: 'scheduled'
+      }));
+      await ClassInstance.insertMany(instanceDocs);
+      const instances = instanceDocs.map(d => ClassInstance.serialize(d));
 
       sendSuccess(res, `Class Series Created with ${instances.length} Instance(s)`, {
         series: ClassSeries.serialize(series.toObject()),
@@ -161,7 +166,7 @@ module.exports = createRouter({
     },
 
     // Retrieves a ClassSeries by classId, including instance count
-    async getClass(req, res) {
+    async getClassSeries(req, res) {
       const { classId } = req.body;
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
       if (!series)
@@ -172,7 +177,7 @@ module.exports = createRouter({
     },
 
     // Returns all active class series with instance counts
-    async getAllClasses(req, res) {
+    async getAllClassSeries(req, res) {
       const allSeries = await ClassSeries.find({ isActive: true }).lean();
       const results = await Promise.all(allSeries.map(async s => {
         const instanceCount = await ClassInstance.countDocuments({ classId: s.classId });
@@ -182,8 +187,8 @@ module.exports = createRouter({
     },
 
     // Updates series metadata only — does not modify existing instances
-    async updateClass(req, res) {
-      const { classId, className, classType, maxCapacity, payRate, defaultInstructorId } = req.body;
+    async updateClassSeries(req, res) {
+      const { classId, className, classType, maxCapacity, payRate, defaultInstructorId, endDate } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() });
       if (!series)
@@ -215,13 +220,25 @@ module.exports = createRouter({
         }
         series.defaultInstructorId = defaultInstructorId ? defaultInstructorId.trim() : null;
       }
+      if (endDate !== undefined) {
+        const endD = new Date(endDate + 'T00:00:00Z');
+        if (isNaN(endD.getTime()))
+          return sendError(res, 400, 'Validation Failed', 'End date must be a valid date (YYYY-MM-DD)', BACK);
+        const twoYearsFromNow = new Date();
+        twoYearsFromNow.setUTCFullYear(twoYearsFromNow.getUTCFullYear() + 2);
+        if (endD > twoYearsFromNow)
+          return sendError(res, 400, 'Validation Failed', 'End date cannot be more than 2 years in the future', BACK);
+        if (endD <= series.startDate)
+          return sendError(res, 400, 'Validation Failed', 'End date must be after the series start date', BACK);
+        series.endDate = endD;
+      }
 
       await series.save();
       sendSuccess(res, 'Class Series Updated', ClassSeries.serialize(series.toObject()), BACK);
     },
 
     // Soft-deletes a series and cancels all future instances
-    async deleteClass(req, res) {
+    async deleteClassSeries(req, res) {
       const { classId } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
@@ -243,15 +260,23 @@ module.exports = createRouter({
       }, BACK);
     },
 
-    // Returns all instances for a class series, sorted by instanceDate
-    async getInstancesByClass(req, res) {
-      const { classId } = req.body;
+    // Returns all instances for a class series, sorted by instanceDate.
+    // Optionally filters by startDate and/or endDate (inclusive, YYYY-MM-DD).
+    async getClassInstances(req, res) {
+      const { classId, startDate, endDate } = req.body;
 
       const series = await ClassSeries.findOne({ classId: classId.trim() }).lean();
       if (!series)
         return sendError(res, 404, 'Class Not Found', `No class series found with ID: ${classId}`, BACK);
 
-      const instances = await ClassInstance.find({ classId: classId.trim() })
+      const query = { classId: classId.trim() };
+      if (startDate || endDate) {
+        query.instanceDate = {};
+        if (startDate) query.instanceDate.$gte = new Date(startDate + 'T00:00:00Z');
+        if (endDate)   query.instanceDate.$lte = new Date(endDate   + 'T00:00:00Z');
+      }
+
+      const instances = await ClassInstance.find(query)
         .sort({ instanceDate: 1 })
         .lean();
 
@@ -260,7 +285,7 @@ module.exports = createRouter({
     },
 
     // Updates a single class instance independently; re-checks studio conflicts if time or duration changes
-    async updateInstance(req, res) {
+    async updateClassInstance(req, res) {
       const { instanceId, instructorId, startTime, duration, status, notes } = req.body;
 
       const inst = await ClassInstance.findOne({ instanceId: instanceId.trim() });
@@ -304,7 +329,7 @@ module.exports = createRouter({
     },
 
     // Cancels a single class instance
-    async cancelInstance(req, res) {
+    async cancelClassInstance(req, res) {
       const { instanceId } = req.body;
 
       const inst = await ClassInstance.findOne({ instanceId: instanceId.trim() });

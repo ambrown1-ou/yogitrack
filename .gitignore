@@ -141,3 +141,7 @@ vite.config.ts.timestamp-*
 # python test packages
 python_test/
 tests/
+
+mongo_collections/
+
+docs/

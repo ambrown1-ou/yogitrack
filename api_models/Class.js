@@ -92,6 +92,17 @@ classSeriesSchema.statics.validate = function (data) {
     errors.push('End date is required');
   if (data.startDate && data.endDate && new Date(data.startDate + 'T00:00:00Z') >= new Date(data.endDate + 'T00:00:00Z'))
     errors.push('End date must be after start date');
+  const todayUTC = new Date(new Date().toISOString().split('T')[0] + 'T00:00:00Z');
+  const twoYearsFromNow = new Date(todayUTC.getTime());
+  twoYearsFromNow.setUTCFullYear(twoYearsFromNow.getUTCFullYear() + 2);
+  if (data.startDate && !isNaN(new Date(data.startDate + 'T00:00:00Z').getTime())) {
+    if (new Date(data.startDate + 'T00:00:00Z') < todayUTC)
+      errors.push('Start date cannot be in the past');
+  }
+  if (data.endDate && !isNaN(new Date(data.endDate + 'T00:00:00Z').getTime())) {
+    if (new Date(data.endDate + 'T00:00:00Z') > twoYearsFromNow)
+      errors.push('End date cannot be more than 2 years in the future');
+  }
   const days = Array.isArray(data.daysOfWeek) ? data.daysOfWeek : (data.daysOfWeek ? [data.daysOfWeek] : []);
   if (days.length === 0)
     errors.push('At least one day of week is required');
