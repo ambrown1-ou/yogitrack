@@ -72,17 +72,19 @@ function Calendar({ user }) {
 
       setInstances(data);
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Could not load the calendar. Please refresh and try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  // Navigate to the previous month, wrapping Dec → Nov of the prior year
   function prevMonth() {
     if (month === 0) { setMonth(11); setYear(function (y) { return y - 1; }); }
     else setMonth(function (m) { return m - 1; });
   }
 
+  // Navigate to the next month, wrapping Dec → Jan of the next year
   function nextMonth() {
     if (month === 11) { setMonth(0); setYear(function (y) { return y + 1; }); }
     else setMonth(function (m) { return m + 1; });
@@ -107,6 +109,7 @@ function Calendar({ user }) {
   var weeks = [];
   for (var w = 0; w < cells.length; w += 7) weeks.push(cells.slice(w, w + 7));
 
+  // Today's key is used to highlight the current date cell on the grid
   var todayKey = today.getFullYear() + '-' +
     String(today.getMonth() + 1).padStart(2, '0') + '-' +
     String(today.getDate()).padStart(2, '0');

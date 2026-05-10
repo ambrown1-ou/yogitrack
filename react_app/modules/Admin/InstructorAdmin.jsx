@@ -27,6 +27,7 @@ function InstructorAdmin() {
     loadInstructors();
   }, []);
 
+  // Fetch all instructors from the API and refresh the table
   async function loadInstructors() {
     setIsLoading(true);
     setError('');
@@ -34,18 +35,20 @@ function InstructorAdmin() {
       var results = await SchedulingAPI.getAllInstructors();
       setInstructors(results);
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Could not load instructors. Please refresh and try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  // Update a single form field in state
   function handleChange(field, value) {
     setFormData(function (prev) {
       return Object.assign({}, prev, { [field]: value });
     });
   }
 
+  // Reset the form to blank state and open the Add Instructor panel
   function openAddForm() {
     setEditingInstructor(null);
     setFormData({ firstName: '', lastName: '', email: '', username: '', phone: '', preferredContactMethod: 'email' });
@@ -56,6 +59,7 @@ function InstructorAdmin() {
     setShowAddForm(true);
   }
 
+  // Pre-fill the form with the selected instructor's data (username is not editable after creation)
   function openEditForm(instructor) {
     setShowAddForm(false);
     setEditingInstructor(instructor);
@@ -72,6 +76,7 @@ function InstructorAdmin() {
     setTempCredentials(null);
   }
 
+  // Hide the form and clear all associated form state
   function closeForm() {
     setShowAddForm(false);
     setEditingInstructor(null);
@@ -79,6 +84,7 @@ function InstructorAdmin() {
     setPendingConfirm(null);
   }
 
+  // Submit add or edit; creating an instructor auto-generates a login account and returns temp credentials
   async function handleSubmit(e, confirmedData) {
     if (e) e.preventDefault();
     setIsSubmitting(true);
@@ -110,13 +116,14 @@ function InstructorAdmin() {
       if (err.isConfirmation) {
         setPendingConfirm({ message: err.message, confirmText: err.confirmText });
       } else {
-        setFormError(err.message);
+        setFormError(err.status ? err.message : 'Something went wrong. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Delete the instructor (or deactivate if they have class assignments); prompts for confirmation first
   async function handleDelete(instructor) {
     if (!window.confirm('Remove ' + instructor.firstName + ' ' + instructor.lastName + '? If they have class assignments they will be deactivated instead of deleted.')) return;
     try {
@@ -125,7 +132,7 @@ function InstructorAdmin() {
       if (editingInstructor && editingInstructor.instructorId === instructor.instructorId) closeForm();
       loadInstructors();
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     }
   }
 

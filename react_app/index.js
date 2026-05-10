@@ -31,6 +31,7 @@ function Login({ onLoginSuccess, error }) {
 
   // handleSubmit - Called when form is submitted
   // Sends username and password to /api/user/login endpoint
+  // Post credentials to the login endpoint; on success, fetch the full user session
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -67,14 +68,14 @@ function Login({ onLoginSuccess, error }) {
         setUsername('');
         setPassword('');
       } else {
-        // Show error message from response
-        const errorMessage = data.results[0] ? data.results[0].error : 'Unknown error';
+        // Show the server's message (e.g. "Invalid credentials"); fall back to a safe default
+        const errorMessage = data.results[0] ? data.results[0].error : 'Incorrect username or password.';
         console.error('Login failed:', errorMessage);
-        setLoginError('Login failed: ' + errorMessage);
+        setLoginError(errorMessage);
       }
     } catch (err) {
       console.error('Login error:', err.message);
-      setLoginError('Error: ' + err.message);
+      setLoginError('Unable to connect. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,9 +143,11 @@ function ChangePassword({ user, onComplete }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Validate locally, then submit the new password via the API
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    // Client-side guards before hitting the API
     if (newPassword.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
@@ -158,7 +161,8 @@ function ChangePassword({ user, onComplete }) {
       const results = await UserAPI.changePassword(newPassword);
       onComplete(results[0]);
     } catch (err) {
-      setError(err.message);
+      // Show server validation errors (4xx) as-is; hide internal errors behind a generic message
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -281,7 +285,7 @@ function App() {
     }
   };
 
-  // handleLogout - Called when user clicks logout button
+  // Clear the server session, then reset all local auth state so the login screen shows
   const handleLogout = async () => {
     try {
       await fetch('/api/user/logout', {

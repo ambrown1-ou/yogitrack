@@ -15,6 +15,7 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
   var [error, setError] = React.useState('');
   var [overwriteInstructor, setOverwriteInstructor] = React.useState(false);
 
+  // Update a single form field in state
   function handleChange(field, value) {
     setFormData(function (prev) {
       return Object.assign({}, prev, { [field]: value });
@@ -26,7 +27,7 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
     setIsSubmitting(true);
     setError('');
     try {
-      // Build only the changed fields
+      // Build a diff object with only the fields that actually changed
       var updates = {};
       if (formData.className !== series.className) updates.className = formData.className;
       if (formData.classType !== series.classType) updates.classType = formData.classType;
@@ -42,10 +43,12 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
         if (updates.defaultInstructorId !== undefined) {
           var today = YogiUtils.todayStr();
           var futureInstances = await SchedulingAPI.getClassInstances(series.classId, today, series.endDate);
-          // Normalize: null/undefined/''/null defaultInstructorId is stored as 'UNASSIGNED' on instances
+          // Normalize: instances store 'UNASSIGNED' when no instructor is set
           var oldInstructorId = series.defaultInstructorId || 'UNASSIGNED';
           var newInstructorId = updates.defaultInstructorId;
 
+          // In overwrite mode, update all future scheduled instances;
+          // otherwise only update those still on the previous default
           var propagatePromises = futureInstances
             .filter(function (inst) {
               if (inst.status !== 'scheduled') return false;
@@ -62,7 +65,7 @@ function SeriesEditForm({ series, instructors, onSave, onCancel }) {
 
       onSave();
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -27,6 +27,7 @@ function CustomerAdmin() {
     loadCustomers();
   }, []);
 
+  // Fetch all customers from the API and refresh the table
   async function loadCustomers() {
     setIsLoading(true);
     setError('');
@@ -34,18 +35,20 @@ function CustomerAdmin() {
       var results = await CustomerAPI.getAllCustomers();
       setCustomers(results);
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Could not load customers. Please refresh and try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  // Update a single form field in state
   function handleChange(field, value) {
     setFormData(function (prev) {
       return Object.assign({}, prev, { [field]: value });
     });
   }
 
+  // Reset the form to blank state and open the Add Customer panel
   function openAddForm() {
     setEditingCustomer(null);
     setFormData({ firstName: '', lastName: '', email: '', phone: '', address: '', dateOfBirth: '', preferredContactMethod: 'email' });
@@ -55,6 +58,7 @@ function CustomerAdmin() {
     setShowAddForm(true);
   }
 
+  // Pre-fill the form with the selected customer's data and open the Edit panel
   function openEditForm(customer) {
     setShowAddForm(false);
     setEditingCustomer(customer);
@@ -72,6 +76,7 @@ function CustomerAdmin() {
     setFormSuccess('');
   }
 
+  // Hide the form and clear all associated form state
   function closeForm() {
     setShowAddForm(false);
     setEditingCustomer(null);
@@ -79,6 +84,7 @@ function CustomerAdmin() {
     setPendingConfirm(null);
   }
 
+  // Submit the add or edit form; the API may return a confirmation prompt (e.g. duplicate name)
   async function handleSubmit(e, confirmedData) {
     if (e) e.preventDefault();
     setIsSubmitting(true);
@@ -101,13 +107,14 @@ function CustomerAdmin() {
       if (err.isConfirmation) {
         setPendingConfirm({ message: err.message, confirmText: err.confirmText });
       } else {
-        setFormError(err.message);
+        setFormError(err.status ? err.message : 'Something went wrong. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Delete the customer (or deactivate if they have records); prompts for confirmation first
   async function handleDelete(customer) {
     if (!window.confirm('Remove ' + customer.firstName + ' ' + customer.lastName + '? If they have sales or attendance records they will be deactivated instead of deleted.')) return;
     try {
@@ -116,7 +123,7 @@ function CustomerAdmin() {
       if (editingCustomer && editingCustomer.customerId === customer.customerId) closeForm();
       loadCustomers();
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     }
   }
 

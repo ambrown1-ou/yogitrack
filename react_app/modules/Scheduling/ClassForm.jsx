@@ -29,12 +29,14 @@ function ClassForm({ instructors, onSave, onCancel }) {
   var [isRecurring, setIsRecurring] = React.useState(false);
   var [error, setError] = React.useState('');
 
+  // Update a single form field in state
   function handleChange(field, value) {
     setFormData(function (prev) {
       return Object.assign({}, prev, { [field]: value });
     });
   }
 
+  // Toggle a day of the week on or off in the daysOfWeek array
   function handleDayToggle(day) {
     setFormData(function (prev) {
       var days = prev.daysOfWeek.includes(day)
@@ -44,6 +46,7 @@ function ClassForm({ instructors, onSave, onCancel }) {
     });
   }
 
+  // Switching to one-off mode clears the days selection and end date since they're not needed
   function handleRecurringToggle(checked) {
     setIsRecurring(checked);
     if (!checked) {
@@ -82,12 +85,13 @@ function ClassForm({ instructors, onSave, onCancel }) {
       await SchedulingAPI.addClassSeries(payload);
       onSave();
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Cap the end date picker at 2 years ahead to prevent runaway series generation
   var _maxDate = (function () { var d = new Date(); d.setFullYear(d.getFullYear() + 2); return d.toISOString().split('T')[0]; })();
 
   return (

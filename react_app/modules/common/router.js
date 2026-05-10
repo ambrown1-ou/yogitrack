@@ -5,6 +5,7 @@
 // Customers see: Calendar (read-only)
 
 function AppRouter({ user, onLogout, onSwitchRole }) {
+  // Build the tab list based on the user's effective role for this session
   var tabs;
   var defaultTab;
 
@@ -32,6 +33,7 @@ function AppRouter({ user, onLogout, onSwitchRole }) {
 
   var [activeTab, setActiveTab] = React.useState(defaultTab);
 
+  // Render the header with user info, role-based nav, and the currently active tab
   return (
     <div className="container">
       <div className="header">

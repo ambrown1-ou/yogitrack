@@ -15,11 +15,14 @@ function Attendance({ user }) {
     loadInstructorAndClasses();
   }, []);
 
+  // Resolve the instructor record from the logged-in user's email,
+  // then fetch their upcoming class instances for the next 30 days
   async function loadInstructorAndClasses() {
     setIsLoading(true);
     setError('');
     try {
       var record = await AttendanceAPI.getInstructorRecord(user.email);
+      // If no instructor record exists, the user can't take attendance
       if (!record) {
         setError('No instructor record found for this account. Contact your manager to set one up.');
         setIsLoading(false);
@@ -32,7 +35,7 @@ function Attendance({ user }) {
       var upcomingClasses = await AttendanceAPI.getInstructorClasses(record.instructorId, today, endDate);
       setClasses(upcomingClasses);
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Could not load your schedule. Please refresh and try again.');
     } finally {
       setIsLoading(false);
     }

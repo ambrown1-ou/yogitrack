@@ -8,18 +8,22 @@ function InstanceForm({ instance, seriesList, instructors, onSave, onCancel }) {
   var [isSubmitting, setIsSubmitting] = React.useState(false);
   var [error, setError] = React.useState('');
 
+  // Look up the parent class series to show the class name in the form header
   var series = seriesList.find(function (s) { return s.classId === instance.classId; });
 
+  // Build a diff of only the changed fields, then submit; skip the API call if nothing changed
   async function handleSubmit(e) {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
     try {
+      // Only include fields that actually changed from the original instance
       var updates = {};
       if (instructorId !== instance.instructorId) updates.instructorId = instructorId || 'UNASSIGNED';
       if (startTime !== instance.startTime) updates.startTime = startTime;
       if (duration !== instance.duration) updates.duration = duration;
 
+      // If nothing changed, just close without hitting the API
       if (Object.keys(updates).length === 0) {
         onCancel();
         return;
@@ -27,7 +31,7 @@ function InstanceForm({ instance, seriesList, instructors, onSave, onCancel }) {
       await SchedulingAPI.updateClassInstance(instance.instanceId, updates);
       onSave();
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

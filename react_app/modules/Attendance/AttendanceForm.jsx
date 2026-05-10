@@ -16,6 +16,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
   var [submitError, setSubmitError] = React.useState('');
   var [submitSuccess, setSubmitSuccess] = React.useState('');
 
+  // Fetch the existing attendance roster for this class instance to show who's already signed in
   async function loadExistingAttendance() {
     setIsLoadingExistingAttendance(true);
     setExistingAttendanceError('');
@@ -26,7 +27,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
     } catch (err) {
       setExistingAttendance([]);
       setAttendanceCount(0);
-      setExistingAttendanceError(err.message);
+      setExistingAttendanceError(err.status ? err.message : 'Could not load the attendance list. Please try again.');
     } finally {
       setIsLoadingExistingAttendance(false);
     }
@@ -36,6 +37,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
     loadExistingAttendance();
   }, [instance.instanceId]);
 
+  // Search the customer directory by name; at least one name field must be filled
   async function handleSearch(e) {
     e.preventDefault();
     if (!searchFirstName.trim() && !searchLastName.trim()) {
@@ -50,12 +52,13 @@ function AttendanceForm({ instance, onBack, onComplete }) {
       setSearchResults(results);
       if (results.length === 0) setSearchError('No customers found with that name.');
     } catch (err) {
-      setSearchError(err.message);
+      setSearchError(err.status ? err.message : 'Search failed. Please try again.');
     } finally {
       setIsSearching(false);
     }
   }
 
+  // Add a customer to the pending attendee list; ignore if they're already on it
   function handleAddCustomer(customer) {
     if (attendees.find(function (a) { return a.customerId === customer.customerId; })) return;
     setAttendees(function (prev) { return prev.concat(customer); });
@@ -65,10 +68,13 @@ function AttendanceForm({ instance, onBack, onComplete }) {
     setSearchError('');
   }
 
+  // Remove a customer from the pending list before the batch is submitted
   function handleRemoveAttendee(customerId) {
     setAttendees(function (prev) { return prev.filter(function (a) { return a.customerId !== customerId; }); });
   }
 
+  // Submit attendance for every customer in the pending list one by one;
+  // tracks individual successes and failures so a partial result is still reported
   async function handleSubmit() {
     if (attendees.length === 0) {
       setSubmitError('Add at least one customer before submitting.');
@@ -87,7 +93,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
         await AttendanceAPI.recordStudentAttendance(instance.instanceId, attendee.customerId);
         successCount++;
       } catch (err) {
-        errors.push(attendee.firstName + ' ' + attendee.lastName + ': ' + err.message);
+        errors.push(attendee.firstName + ' ' + attendee.lastName + ': ' + (err.status ? err.message : 'Could not record attendance.'));
       }
     }
 
@@ -103,6 +109,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
     }
   }
 
+  // Flag the class as over capacity if pending + existing attendees exceed the limit
   var isOverCapacity = (attendanceCount + attendees.length) > instance.maxCapacity;
 
   return (
@@ -123,7 +130,7 @@ function AttendanceForm({ instance, onBack, onComplete }) {
           <p style={{ margin: '0 0 4px', fontWeight: '700' }}>Current attendance list:</p>
           {isLoadingExistingAttendance && <p style={{ margin: 0 }}>Loading attendance list...</p>}
           {!isLoadingExistingAttendance && existingAttendanceError && (
-            <p style={{ margin: 0, color: 'red' }}>Could not load attendance list: {existingAttendanceError}</p>
+            <p style={{ margin: 0, color: 'red' }}>{existingAttendanceError}</p>
           )}
           {!isLoadingExistingAttendance && !existingAttendanceError && existingAttendance.length === 0 && (
             <p style={{ margin: 0 }}>No attendance recorded yet for this class.</p>

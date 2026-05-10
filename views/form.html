@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{methodName}}</title>
+  <title>{{methodName}} — YogiTrack API</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <div class="container narrow">
     <div class="card">
+      <p class="form-breadcrumb"><a href="/api">API</a> / <a href="{{baseUrl}}">{{moduleTitle}}</a></p>
       <h1>{{methodName}}</h1>
       <form method="POST" action="{{action}}">
         {{fieldInputs}}
         <div class="form-actions">
-          <button type="submit">{{submitText}}</button>
           <a href="{{baseUrl}}" class="cancel-btn">Cancel</a>
+          <button type="submit">{{submitText}}</button>
         </div>
       </form>
     </div>

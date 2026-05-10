@@ -268,7 +268,7 @@ function getFieldConfig(fieldName) {
 			label: 'Status'
 		},
 		notes: {
-			type: 'text',
+			type: 'textarea',
 			placeholder: 'Optional notes',
 			label: 'Notes'
 		},
@@ -326,16 +326,30 @@ function renderFieldInput(fieldName, config) {
 	if (type === 'checkboxGroup') {
 		const checkboxes = options
 			.map(opt => `
-        <label style="display:inline-flex;align-items:center;margin-right:12px">
-          <input type="checkbox" name="${fieldName}" value="${opt}" style="margin-right:4px"> ${opt}
+        <label class="checkbox-group-item">
+          <input type="checkbox" name="${fieldName}" value="${opt}"> ${opt}
         </label>`)
 			.join('');
 		return `
       <div class="form-group">
-        <label>${label}${required ? ' <span style="color:red">*</span>' : ''}:</label>
-        <div style="margin-top:4px">${checkboxes}</div>
+        <label>${label}${required ? ' <span class="required-star">*</span>' : ''}:</label>
+        <div class="checkbox-group-options">${checkboxes}</div>
       </div>
     `;
+	}
+
+	if (type === 'textarea') {
+		return `
+    <div class="form-group">
+      <label for="${fieldName}">${label}:</label>
+      <textarea
+        id="${fieldName}"
+        name="${fieldName}"
+        ${placeholder ? `placeholder="${placeholder}"` : ''}
+        ${requiredAttr}
+      ></textarea>
+    </div>
+  `;
 	}
 
 	return `
@@ -383,6 +397,7 @@ function renderForm(methodName, baseUrl, fields, moduleTitle) {
 
 	return renderTemplate('form', {
 		methodName,
+		moduleTitle,
 		action: `${baseUrl}/${methodName}`,
 		baseUrl,
 		fieldInputs: `<input type="hidden" name="_browserForm" value="1">${fieldInputs}`,

@@ -6,7 +6,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background: #fff;
+  background: #f5f4f2;
   color: #000;
   min-height: 100vh;
   padding: 24px 16px;
@@ -29,8 +29,10 @@ body {
 .card,
 .header {
   background: #fff;
-  border: 1px solid #000;
+  border: 1px solid #d4d4d4;
   padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 .header {
@@ -70,16 +72,19 @@ input,
 select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #000;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
   background: #fff;
   color: #000;
   font: inherit;
+  transition: border-color 120ms ease;
 }
 
 input:focus,
 select:focus {
-  outline: 2px solid #000;
+  outline: 2px solid #c84b11;
   outline-offset: 1px;
+  border-color: #c84b11;
 }
 
 .form-actions {
@@ -96,19 +101,26 @@ button,
   align-items: center;
   justify-content: center;
   padding: 10px 16px;
-  border: 1px solid #000;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
   background: #fff;
   color: #000;
   text-decoration: none;
   font: inherit;
   cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 button:hover,
 .button:hover,
-.cancel-btn:hover,
-a:hover {
-  text-decoration: underline;
+.cancel-btn:hover {
+  background: #fff3ea;
+  border-color: #c84b11;
+  text-decoration: none;
 }
 
 a {
@@ -137,8 +149,16 @@ a {
 
 .methods-list a {
   display: block;
-  padding: 10px 12px;
-  border: 1px solid #000;
+  padding: 12px 16px;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+.methods-list a:hover {
+  background: #fff3ea;
+  border-color: #c84b11;
   text-decoration: none;
 }
 
@@ -148,21 +168,28 @@ a {
 }
 
 .error-details {
-  border: 1px solid #000;
+  border: 1px solid #f0b8b5;
+  background: #fff5f5;
   padding: 12px;
+  border-radius: 6px;
   margin-bottom: 16px;
   font-family: "Courier New", Courier, monospace;
+  font-size: 0.9rem;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 pre {
-  border: 1px solid #000;
+  border: 1px solid #d4d4d4;
+  background: #f8f8f6;
   padding: 12px;
+  border-radius: 6px;
   overflow-x: auto;
   font-family: "Courier New", Courier, monospace;
+  font-size: 0.85rem;
   white-space: pre-wrap;
   word-break: break-word;
+  margin-bottom: 16px;
 }
 
 table {
@@ -182,7 +209,9 @@ td {
 footer {
   margin-top: 20px;
   padding-top: 12px;
-  border-top: 1px solid #000;
+  border-top: 1px solid #d4d4d4;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .info-box {
@@ -316,6 +345,534 @@ footer {
 
   #root .header {
     padding: 18px;
+  }
+}
+
+/* ====================================================
+   API / View Page Styles  (server-rendered forms)
+   ==================================================== */
+
+/* Breadcrumb shown above the method name on form pages */
+.form-breadcrumb {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.form-breadcrumb a {
+  color: #c84b11;
+  text-decoration: none;
+}
+
+.form-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* Required field asterisk */
+.required-star {
+  color: #c84b11;
+  margin-left: 2px;
+}
+
+/* Success page */
+.success-title {
+  color: #186818;
+}
+
+.success-title::before {
+  content: "✓  ";
+}
+
+/* Error page */
+.error-title {
+  color: #b92b27;
+}
+
+.error-title::before {
+  content: "✕  ";
+}
+
+/* Confirmation / warning page */
+.warning-title {
+  color: #8a5000;
+}
+
+.warning-title::before {
+  content: "⚠  ";
+}
+
+.warning-details {
+  border: 1px solid #e8c87a;
+  background: #fffbe6;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+/* Confirmation page action buttons */
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
+  background: #fff;
+  color: #000;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.btn-confirm {
+  background: #c84b11;
+  border-color: #c84b11;
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-confirm:hover {
+  background: #a83c0d;
+  border-color: #a83c0d;
+  color: #fff;
+  text-decoration: none;
+}
+
+.btn-cancel:hover {
+  background: #f5f5f5;
+  border-color: #888;
+  text-decoration: none;
+}
+
+/* Textarea for multi-line fields (e.g., notes) */
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 120ms ease;
+}
+
+textarea:focus {
+  outline: 2px solid #c84b11;
+  outline-offset: 1px;
+  border-color: #c84b11;
+}
+
+/* Checkbox group layout in forms */
+.checkbox-group-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 6px;
+}
+
+.checkbox-group-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.checkbox-group-item input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+/* ====================================================
+   API Landing Page — Status row + Module grid
+   ==================================================== */
+
+/* Status row (db + session side-by-side) */
+.api-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  align-items: center;
+}
+
+.api-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.api-status-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.api-status-dbname {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.api-status-detail-link {
+  font-size: 0.8rem;
+  color: #c84b11;
+}
+
+/* Pill badges */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-connected {
+  background: #e6f4ea;
+  color: #186818;
+  border: 1px solid #b2dfb5;
+}
+
+.status-disconnected {
+  background: #fce8e6;
+  color: #b92b27;
+  border: 1px solid #f0b8b5;
+}
+
+.status-offline {
+  background: #f5f5f5;
+  color: #555;
+  border: 1px solid #d4d4d4;
+}
+
+/* Module card grid */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #000;
+  background: #fff;
+  transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+}
+
+.module-card:hover {
+  background: #fff3ea;
+  border-color: #c84b11;
+  box-shadow: 0 2px 6px rgba(200, 75, 17, 0.12);
+  text-decoration: none;
+}
+
+.module-card strong {
+  font-size: 1rem;
+}
+
+.module-card span {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* ====================================================
+   API Reference Page
+   ==================================================== */
+
+/* One card per module — stack vertically with gap */
+.ref-module {
+  margin-bottom: 20px;
+}
+
+.ref-module-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.ref-module-header h2 {
+  margin-bottom: 4px;
+  font-size: 1.2rem;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ref-module-header p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.ref-module-link {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: #c84b11;
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid #e8cfc4;
+  border-radius: 6px;
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+.ref-module-link:hover {
+  background: #fff3ea;
+  border-color: #c84b11;
+  text-decoration: none;
+}
+
+/* Method block — subtle separator between methods */
+.ref-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ref-method {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ref-method-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.ref-endpoint {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.9rem;
+  color: #333;
+  word-break: break-all;
+}
+
+.ref-verb {
+  color: #c84b11;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.ref-test-link {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #c84b11;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.ref-test-link:hover {
+  text-decoration: underline;
+}
+
+/* Parameter table inside a method block */
+.ref-params-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.ref-params-table th,
+.ref-params-table td {
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.ref-params-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ref-params-table th {
+  background: none;
+  color: #888;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ref-params-table code {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.88rem;
+  color: #333;
+}
+
+.ref-params-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.ref-no-params {
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+/* Required / Optional badges */
+.ref-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ref-badge-required {
+  background: #fce8e6;
+  color: #b92b27;
+  border: 1px solid #f0b8b5;
+}
+
+.ref-badge-optional {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+/* Type label pill */
+.ref-type {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ref-type-string   { background: #e8f0fe; color: #1a56a0; border: 1px solid #c0d4f7; }
+.ref-type-number   { background: #e6f4ea; color: #186818; border: 1px solid #b2dfb5; }
+.ref-type-date     { background: #f3e8fd; color: #6b21a8; border: 1px solid #dbb8f5; }
+.ref-type-enum     { background: #fff3e0; color: #8a4b00; border: 1px solid #f5d08c; }
+.ref-type-array    { background: #fff3e0; color: #8a4b00; border: 1px solid #f5d08c; }
+.ref-type-boolean  { background: #f0f0f0; color: #444;    border: 1px solid #d0d0d0; }
+
+/* Domain value pills (for enum/array) */
+.ref-value {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 2px 2px 2px 0;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  background: #f5f5f5;
+  border: 1px solid #d8d8d8;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* Format hint text */
+.ref-format {
+  font-size: 0.83rem;
+  color: #666;
+}
+
+/* ====================================================
+   Mobile Responsive — API view pages
+   ==================================================== */
+
+@media (max-width: 640px) {
+  body {
+    padding: 12px 8px;
+  }
+
+  .card,
+  .header {
+    padding: 16px;
+  }
+
+  .form-actions,
+  .button-group {
+    flex-direction: column;
+  }
+
+  .form-actions button,
+  .form-actions a,
+  .button-group .btn {
+    width: 100%;
+    padding: 14px 16px;
+  }
+
+  /* Prevents automatic zoom on input focus in iOS Safari */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+    padding: 12px 10px;
+  }
+
+  .checkbox-group-options {
+    gap: 10px 12px;
+  }
+
+  .checkbox-group-item {
+    font-size: 1rem;
+  }
+
+  .module-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .api-status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ref-module-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ref-method-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .ref-params-table th,
+  .ref-params-table td {
+    padding: 8px 10px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  th,
+  td {
+    padding: 8px 6px;
   }
 }
 

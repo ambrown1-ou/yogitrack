@@ -25,6 +25,7 @@ function Scheduling({ user }) {
     loadData();
   }, []);
 
+  // Load all class series and the instructor list on mount; both are needed across tabs
   async function loadData() {
     setIsLoading(true);
     setError('');
@@ -36,12 +37,13 @@ function Scheduling({ user }) {
       setSeriesList(results[0]);
       setInstructorList(results[1]);
     } catch (err) {
-      setError(err.message);
+      setError(err.status ? err.message : 'Could not load scheduling data. Please refresh and try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  // Load upcoming instances (next 90 days) for the selected class series
   async function loadInstances(classId) {
     if (!classId) { setInstances([]); return; }
     setInstPage(1);
@@ -55,6 +57,7 @@ function Scheduling({ user }) {
     }
   }
 
+  // Soft-delete the series and cancel all future instances; prompts for confirmation first
   async function handleDeactivateSeries(classId, className) {
     if (!window.confirm('Deactivate "' + className + '" and cancel all future instances?')) return;
     try {
@@ -63,20 +66,22 @@ function Scheduling({ user }) {
       setInstances([]);
       setFilterClassId('');
     } catch (err) {
-      window.alert('Error: ' + err.message);
+      window.alert(err.status ? err.message : 'Something went wrong. Please try again.');
     }
   }
 
+  // Cancel a single class instance; prompts for confirmation first
   async function handleCancelInstance(instanceId) {
     if (!window.confirm('Cancel this class instance?')) return;
     try {
       await SchedulingAPI.cancelClassInstance(instanceId);
       loadInstances(filterClassId);
     } catch (err) {
-      window.alert('Error: ' + err.message);
+      window.alert(err.status ? err.message : 'Something went wrong. Please try again.');
     }
   }
 
+  // Resolve instructor full name from instructorId for table display
   function getInstructorName(instructorId) {
     var found = instructorList.find(function (i) { return i.instructorId === instructorId; });
     return found ? found.firstName + ' ' + found.lastName : instructorId;

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirm — YogiTrack API</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -12,8 +14,8 @@
       <form method="POST" action="{{action}}">
         {{hiddenFields}}
         <div class="button-group">
-          <button type="submit" class="btn btn-confirm">{{confirmText}}</button>
           <a href="{{backUrl}}" class="btn btn-cancel">Cancel</a>
+          <button type="submit" class="btn btn-confirm">{{confirmText}}</button>
         </div>
       </form>
     </div>

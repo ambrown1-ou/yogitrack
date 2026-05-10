@@ -2,45 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>YogiTrack API Development and Testing</title>
+  <title>YogiTrack API</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <div class="container">
     <div class="back-link">
-      <a href="/app">< Back to Dashboard</a>
+      <a href="/app">&larr; Back to Dashboard</a>
     </div>
 
     <div class="header">
       <h1>YogiTrack API</h1>
-      <p>API Development and Testing</p>
+      <p>Development &amp; Testing Console</p>
     </div>
 
     <div class="card">
-      <h2>Database Status</h2>
-      <p>{{dbStatus}} | <a href="/status">View Full DB Status</a></p>
-      <h2>Login User</h2>
-      <p>{{loginStatus}}</p>
-    </div>
-
-    <div class="card">
-      <h2>Available Modules</h2>
-      <div class="info-box">
-        <p>Select a module below to view its methods and test endpoints. Each module provides CRUD operations for managing studio resources.</p>
+      <h2>Status</h2>
+      <div class="api-status-row">
+        <div class="api-status-item">
+          <span class="api-status-label">Database</span>
+          {{dbStatus}}
+          <a href="/status" class="api-status-detail-link">Details</a>
+        </div>
+        <div class="api-status-item">
+          <span class="api-status-label">Session</span>
+          {{loginStatus}}
+        </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Module</th>
-            <th>Description</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{moduleLinks}}
-        </tbody>
-      </table>
+    </div>
+
+    <div class="card">
+      <h2>Modules</h2>
+      <p>Select a module to view its methods and test endpoints. &nbsp;<a href="/api/reference">View full API reference &rarr;</a></p>
+      <div class="module-grid">
+        {{moduleLinks}}
+      </div>
     </div>
 
     <footer>
